@@ -2117,11 +2117,7 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
   <ui-input fadeout="" id="input" icon="{{icon}}" placeholder="{{placeholder}}" value="{{text}}"></ui-input>
 
   <section id="results">
-    <content select="header">
-    </content>  
     <content select="ui-typeahead-item">
-    </content>
-	<content select="footer">
     </content>
   </section>
 
@@ -12410,10 +12406,17 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
 :host::shadow ui-typeahead[selected]::shadow #results {
   top: 100%;
   background-color: white;
-  overflow: auto;
+  overflow-y: scroll;
+}
+:host::shadow ui-typeahead::shadow #results {
+  overflow-y: scroll;
+  max-height: 600px;
 }
 :host::shadow ui-typeahead::shadow ui-input {
   opacity: 1 !important;
+}
+:host::shadow ui-typeahead::shadow ui-input::shadow #field input {
+  flex: initial;
 }
 :host::shadow [selected] {
   border-bottom: 1px solid rgba(51, 51, 51, 0.1);
@@ -12427,8 +12430,14 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
 
       
       <header class="facets" hidden?="{{items.length == 0}}">
+      	<template repeat="{{f, i in activeFacets}}">
+
+			<small class="facet active" on-click="{{removeFacet}}">{{f.term}}<span hidden?="{{i == facets.length -1 }}">&#xA0;&gt;&#xA0;</span></small>
+
+      	</template>
+
       	<template repeat="{{f, i in facets}}">
-			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{facetClicked}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&#xA0;&#xB7;&#xA0;</span></small>
+			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{addFacet}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&#xA0;&#xB7;&#xA0;</span></small>
 
       	</template>
       	
@@ -12448,7 +12457,7 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
 
     </ui-typeahead>
 
-    <core-websocket id="imposter" urls="wss://elastico.glgroup.com/imposter"></core-websocket>	
+    <core-websocket id="imposter" urls="ws://localhost:7777/imposter"></core-websocket>	
 
 </template>
 <script built="/Users/jloiola/github/glg-taxonomy/src/glg-taxonomy.litcoffee">(function e(t, n, r) {
@@ -12483,9 +12492,9 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                     }
                 },
                 facets: {
-                    rootName: {
+                    firstLevel: {
                         terms: {
-                            field: "rootName"
+                            field: "firstLevel"
                         }
                     }
                 },
@@ -12500,7 +12509,7 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
             },
             payload: {
                 verb: "POST",
-                url: "https://elastico.glgroup.com/taxonomy_sectors/_search"
+                url: "http://localhost:9200/taxonomy_sectors/_search"
             },
             resultsChanged: function(oldVal, newVal) {
                 if (newVal) {
@@ -12511,7 +12520,8 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                 this.results = response.hits.hits.map(function(h) {
                     return h._source;
                 });
-                this.facets = response.facets.rootName.terms;
+                console.log(response.facets);
+                this.facets = response.facets[this.filterPropertes[this.filterLevel]].terms;
                 return this.total = response.hits.total;
             },
             mapTree: function(results) {
@@ -12551,15 +12561,28 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                     };
                 }(this));
             },
-            facetClicked: function(e, _, src) {
+            removeFacet: function(e, _, src) {
+                return console.log(arguments);
+            },
+            addFacet: function(e, _, src) {
+                var field, _base;
                 this.activeFacet = e.target.templateInstance.model.f;
-                this.elasticParams.filter = {
-                    bool: {
-                        must: {
-                            terms: {
-                                rootName: [ this.activeFacet.term ]
+                this.activeFacets.push(this.activeFacet);
+                if ((_base = this.elasticParams).filter == null) {
+                    _base.filter = {
+                        bool: {
+                            must: {
+                                terms: {}
                             }
                         }
+                    };
+                }
+                this.elasticParams.filter.bool.must.terms[this.filterPropertes[this.filterLevel]] = [ this.activeFacet.term ];
+                this.filterLevel += 1;
+                field = this.filterPropertes[this.filterLevel];
+                this.elasticParams.facets[field] = {
+                    terms: {
+                        field: field
                     }
                 };
                 this.payload.data = this.elasticParams;
@@ -12567,6 +12590,7 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
             },
             sendQuery: function(e) {
                 this.elasticParams.query.match.name = e.detail.value;
+                delete this.activeFacet;
                 this.payload.data = this.elasticParams;
                 return this.$.imposter.send(this.payload);
             },
@@ -12584,7 +12608,12 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                 if (this.pageSize == null) {
                     this.pageSize = 20;
                 }
-                return this.items != null ? this.items : this.items = [];
+                if (this.items == null) {
+                    this.items = [];
+                }
+                this.filterLevel = 0;
+                this.filterPropertes = [ "firstLevel", "secondLevel", "thirdLevel" ];
+                return this.activeFacets = [];
             },
             attached: function() {
                 this.elasticParams.from = (this.page - 1) * this.pageSize;

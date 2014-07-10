@@ -13,8 +13,14 @@
 
       
       <header class="facets" hidden?="{{items.length == 0}}">
+      	<template repeat="{{f, i in activeFacets}}">
+
+			<small class="facet active" on-click="{{removeFacet}}">{{f.term}}<span hidden?="{{i == facets.length -1 }}">&nbsp;&gt;&nbsp;</span></small>
+
+      	</template>
+
       	<template repeat="{{f, i in facets}}">
-			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{facetClicked}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&nbsp;&middot;&nbsp;</span></small>
+			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{addFacet}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&nbsp;&middot;&nbsp;</span></small>
 
       	</template>
       	
@@ -34,7 +40,7 @@
 
     </ui-typeahead>
 
-    <core-websocket id="imposter" urls="wss://elastico.glgroup.com/imposter"></core-websocket>	
+    <core-websocket id="imposter" urls="ws://localhost:7777/imposter"></core-websocket>	
 
 </template>
 <script src="./glg-taxonomy.litcoffee"></script>

@@ -20,11 +20,19 @@
 :host::shadow ui-typeahead[selected]::shadow #results {
     top: 100%;
     background-color: white;
-    overflow: auto;	
+    overflow-y: scroll;
+}
+
+:host::shadow ui-typeahead::shadow #results {
+    overflow-y: scroll;
+	max-height: 600px;
 }
       
 :host::shadow ui-typeahead::shadow ui-input {
 	opacity: 1 !important;
+	&::shadow #field input {
+		flex:initial;
+	}
 }
 
 :host::shadow [selected] {

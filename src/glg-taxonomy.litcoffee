@@ -15,9 +15,10 @@
                   name: null
 
           facets:
-              rootName:
+              firstLevel:
                   terms:
-                      field: "rootName"
+                      field: "firstLevel"
+
           highlight:
               order: "score"
               fields:
@@ -26,7 +27,7 @@
 
       payload:
         verb: "POST"
-        url: "https://elastico.glgroup.com/taxonomy_sectors/_search"
+        url: "http://localhost:9200/taxonomy_sectors/_search"
 
       resultsChanged: (oldVal, newVal) ->
         @mapTree(newVal) if newVal
@@ -35,7 +36,8 @@
 
       mapElasticResults: (response) ->  
         @results = response.hits.hits.map (h) -> h._source
-        @facets = response.facets.rootName.terms
+        console.log response.facets
+        @facets = response.facets[@filterPropertes[@filterLevel]].terms
         @total = response.hits.total
 
       mapTree: (results) ->
@@ -67,20 +69,34 @@
 
 ##Event Handlers
 
-      facetClicked: (e, _, src) ->
-        @activeFacet = e.target.templateInstance.model.f
+      removeFacet: (e, _, src) ->
+        console.log arguments
 
-        @elasticParams.filter = 
-          bool:
-            must:
-              terms:
-                rootName: [@activeFacet.term]
+
+      addFacet: (e, _, src) ->
+        #set filter on clicked facet
+        @activeFacet = e.target.templateInstance.model.f
+        @activeFacets.push(@activeFacet)
+        @elasticParams.filter ?= {bool:{must:{terms:{}}}}
+        @elasticParams.filter.bool.must.terms[@filterPropertes[@filterLevel]] = [@activeFacet.term]
+
+        # field = @filterPropertes[@filterLevel]
+        # @elasticParams.facets[field] = {filter:{term: {}}}
+        # @elasticParams.facets[field].filter.term[field] = @activeFacet.term
+
+        #get facets back for next level
+        @filterLevel += 1
+        field = @filterPropertes[@filterLevel]
+        @elasticParams.facets[field] = 
+          terms:
+            field: field
 
         @payload.data = @elasticParams
         @$.imposter.send @payload
 
       sendQuery: (e) ->
         @elasticParams.query.match.name = e.detail.value
+        delete @activeFacet 
         @payload.data = @elasticParams
         @$.imposter.send @payload
 
@@ -96,7 +112,14 @@
           @page ?= 1
           @pageSize ?= 20
           @items ?= []
-          
+
+          @filterLevel = 0
+          @filterPropertes = [
+            "firstLevel"
+            "secondLevel"
+            "thirdLevel"
+          ]
+          @activeFacets = []
 
       attached: ->
         @elasticParams.from = (@page - 1) * @pageSize
