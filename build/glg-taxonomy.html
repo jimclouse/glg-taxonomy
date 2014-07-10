@@ -12393,16 +12393,6 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
   position: relative;
   box-sizing: border-box;
 }
-:host .facets {
-  padding: 10px;
-}
-:host .facets .facet {
-  cursor: pointer;
-  white-space: nowrap;
-}
-:host .facets .facet.active {
-  font-weight: bold;
-}
 :host::shadow ui-typeahead[selected]::shadow #results {
   top: 100%;
   background-color: white;
@@ -12421,38 +12411,42 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
 :host::shadow [selected] {
   border-bottom: 1px solid rgba(51, 51, 51, 0.1);
 }
+:host::shadow ui-typeahead ui-typeahead-item.header {
+  font-size: .8em;
+  background-color: rgba(51, 51, 51, 0.1);
+}
+:host::shadow ui-typeahead ui-typeahead-item .icon {
+  display: inline-block;
+  width: 15px;
+}
 </style>
 	<content></content>
 
-	<ui-pill>Hi Dog</ui-pill>
-
-    <ui-typeahead id="typeahead" icon="fa-search" placeholder="This is a typeahead" debounce="200">
-
-      
-      <header class="facets" hidden?="{{items.length == 0}}">
-      	<template repeat="{{f, i in activeFacets}}">
-
-			<small class="facet active" on-click="{{removeFacet}}">{{f.term}}<span hidden?="{{i == facets.length -1 }}">&#xA0;&gt;&#xA0;</span></small>
-
-      	</template>
-
-      	<template repeat="{{f, i in facets}}">
-			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{addFacet}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&#xA0;&#xB7;&#xA0;</span></small>
-
-      	</template>
-      	
-      </header>
+    <ui-typeahead id="typeahead" icon="fa-search" placeholder="Search taxonomy" debounce="200">
 
       <!-- dynamically templated items -->
       <template id="typeahead-template" repeat="{{item, i in items}}">
-        <ui-typeahead-item>
-          <div on-click="{{onClick}}" style="margin-left: {{ item.depth * 15}}px">
-          	<span style="display:inline-block;width:15px;">
-          		<i hidden?="{{ !(items[i+1].depth &gt; item.depth) }}" class="fa fa-angle-down"></i>
-          	</span>
-          	{{ item.name }} <i hidden?="{{!item.match}}" class="fa fa-check"></i>
-      		</div>
+
+        <ui-typeahead-item class="{{ {header: item.header} | tokenList }}">
+
+			<template if="{{item.header}}" repeat="{{ part, d in item.parts}}">
+				<span hidden?="{{d == 0}}">&#xA0;<i class="fa fa-angle-right"></i>&#xA0;</span><span>{{part}}</span>
+			</template>	
+			
+			<template if="{{!item.header}}">	
+				
+				<div on-click="{{onClick}}">
+					<span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
+					<span class="icon">
+						<i hidden?="{{ !(items[i+1].depth &gt; item.depth) }}" class="fa fa-angle-down"></i>
+					</span>
+					{{ item.name }}
+					</span>
+				</div>
+			</template>
+
         </ui-typeahead-item>
+        
       </template>
 
     </ui-typeahead>
@@ -12518,14 +12512,13 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
             },
             mapElasticResults: function(response) {
                 this.results = response.hits.hits.map(function(h) {
+                    h._source._score = h._score;
                     return h._source;
                 });
-                console.log(response.facets);
-                this.facets = response.facets[this.filterPropertes[this.filterLevel]].terms;
                 return this.total = response.hits.total;
             },
             mapTree: function(results) {
-                var paths;
+                var groupDepth, groups, items, lastKey;
                 results.sort(function(a, b) {
                     if (a.fullPath > b.fullPath) {
                         return 1;
@@ -12535,62 +12528,55 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                     }
                     return 0;
                 });
-                paths = {};
                 this.items = [];
-                return results.forEach(function(_this) {
+                lastKey = null;
+                groupDepth = 0;
+                groups = [];
+                items = [];
+                results.forEach(function(_this) {
                     return function(r, j) {
-                        r.parts = r.fullPath.split(" > ");
-                        return r.parts.forEach(function(p, i, list) {
-                            var parentKey;
-                            parentKey = list.slice(0, i).join(" > ");
-                            if (i === 0) {
-                                parentKey = "root-" + p;
+                        var parentKey, parents;
+                        parents = r.parts.slice(0, r.parts.length - 1);
+                        parentKey = parents.join(" > ");
+                        if (parentKey.indexOf(lastKey) === -1) {
+                            if (items.length) {
+                                items[0].score = items.reduce(function(acc, v) {
+                                    if (v._score != null) {
+                                        acc += v._score;
+                                    }
+                                    return acc;
+                                }, 0);
+                                groups.push(items);
+                                items = [];
                             }
-                            if (!paths[parentKey] && r.name !== p) {
-                                _this.items.push({
-                                    name: p,
-                                    depth: i
-                                });
-                            }
-                            paths[parentKey] = true;
-                            if (r.name === p) {
-                                r.match = true;
-                                return _this.items.push(r);
-                            }
-                        });
+                            groupDepth = parents.length - 1;
+                            items.push({
+                                header: true,
+                                parts: parents
+                            });
+                        }
+                        r.groupDepth = groupDepth;
+                        items.push(r);
+                        return lastKey = parentKey;
+                    };
+                }(this));
+                groups.sort(function(a, b) {
+                    if (a[0].score < b[0].score) {
+                        return 1;
+                    }
+                    if (a[0].score > b[0].score) {
+                        return -1;
+                    }
+                    return 0;
+                });
+                return groups.forEach(function(_this) {
+                    return function(g) {
+                        return _this.items = _this.items.concat(g);
                     };
                 }(this));
             },
-            removeFacet: function(e, _, src) {
-                return console.log(arguments);
-            },
-            addFacet: function(e, _, src) {
-                var field, _base;
-                this.activeFacet = e.target.templateInstance.model.f;
-                this.activeFacets.push(this.activeFacet);
-                if ((_base = this.elasticParams).filter == null) {
-                    _base.filter = {
-                        bool: {
-                            must: {
-                                terms: {}
-                            }
-                        }
-                    };
-                }
-                this.elasticParams.filter.bool.must.terms[this.filterPropertes[this.filterLevel]] = [ this.activeFacet.term ];
-                this.filterLevel += 1;
-                field = this.filterPropertes[this.filterLevel];
-                this.elasticParams.facets[field] = {
-                    terms: {
-                        field: field
-                    }
-                };
-                this.payload.data = this.elasticParams;
-                return this.$.imposter.send(this.payload);
-            },
             sendQuery: function(e) {
                 this.elasticParams.query.match.name = e.detail.value;
-                delete this.activeFacet;
                 this.payload.data = this.elasticParams;
                 return this.$.imposter.send(this.payload);
             },
@@ -12608,12 +12594,7 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
                 if (this.pageSize == null) {
                     this.pageSize = 20;
                 }
-                if (this.items == null) {
-                    this.items = [];
-                }
-                this.filterLevel = 0;
-                this.filterPropertes = [ "firstLevel", "secondLevel", "thirdLevel" ];
-                return this.activeFacets = [];
+                return this.items != null ? this.items : this.items = [];
             },
             attached: function() {
                 this.elasticParams.from = (this.page - 1) * this.pageSize;

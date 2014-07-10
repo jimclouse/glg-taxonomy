@@ -35,10 +35,11 @@
 ##Methods
 
       mapElasticResults: (response) ->  
-        @results = response.hits.hits.map (h) -> h._source
-        console.log response.facets
-        @facets = response.facets[@filterPropertes[@filterLevel]].terms
+        @results = response.hits.hits.map (h) -> 
+          h._source._score = h._score
+          h._source
         @total = response.hits.total
+
 
       mapTree: (results) ->
         
@@ -49,54 +50,49 @@
             return -1
           return 0
 
-        paths = {}
         @items = []
+        lastKey = null
+        groupDepth = 0
+        groups = []
+        items = []
+
         results.forEach (r, j) =>
+          parents = r.parts.slice(0, r.parts.length - 1)
+          parentKey = parents.join(" > ")
 
-          r.parts = r.fullPath.split(" > ")
-          r.parts.forEach (p, i, list) =>
-
-            parentKey = list.slice(0, i).join(" > ")
-            parentKey = "root-#{p}" if i == 0
-
-            if !paths[parentKey] && r.name != p
-              @items.push({name:p, depth:i}) 
-            paths[parentKey] = true
+          if parentKey.indexOf(lastKey) == -1
             
-            if r.name == p
-              r.match = true
-              @items.push(r)
+            if items.length
+              items[0].score = items.reduce (acc, v) ->
+                if v._score?
+                  acc += v._score
+                acc
+              , 0
+
+              groups.push items
+              items = []
+
+            groupDepth = parents.length - 1
+            items.push({header:true, parts:parents})
+          
+          r.groupDepth = groupDepth
+          items.push(r)
+          lastKey = parentKey
+
+        groups.sort (a, b) ->
+          if (a[0].score < b[0].score)
+           return 1
+          if (a[0].score > b[0].score)
+            return -1
+          return 0
+
+        groups.forEach (g) => @items = @items.concat(g)
+            
 
 ##Event Handlers
 
-      removeFacet: (e, _, src) ->
-        console.log arguments
-
-
-      addFacet: (e, _, src) ->
-        #set filter on clicked facet
-        @activeFacet = e.target.templateInstance.model.f
-        @activeFacets.push(@activeFacet)
-        @elasticParams.filter ?= {bool:{must:{terms:{}}}}
-        @elasticParams.filter.bool.must.terms[@filterPropertes[@filterLevel]] = [@activeFacet.term]
-
-        # field = @filterPropertes[@filterLevel]
-        # @elasticParams.facets[field] = {filter:{term: {}}}
-        # @elasticParams.facets[field].filter.term[field] = @activeFacet.term
-
-        #get facets back for next level
-        @filterLevel += 1
-        field = @filterPropertes[@filterLevel]
-        @elasticParams.facets[field] = 
-          terms:
-            field: field
-
-        @payload.data = @elasticParams
-        @$.imposter.send @payload
-
       sendQuery: (e) ->
         @elasticParams.query.match.name = e.detail.value
-        delete @activeFacet 
         @payload.data = @elasticParams
         @$.imposter.send @payload
 
@@ -112,14 +108,6 @@
           @page ?= 1
           @pageSize ?= 20
           @items ?= []
-
-          @filterLevel = 0
-          @filterPropertes = [
-            "firstLevel"
-            "secondLevel"
-            "thirdLevel"
-          ]
-          @activeFacets = []
 
       attached: ->
         @elasticParams.from = (@page - 1) * @pageSize
