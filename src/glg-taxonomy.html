@@ -1,0 +1,41 @@
+<link rel="import" href="../node_modules/ui-typeahead/src/ui-typeahead.html" />  
+<link rel="import" href="../node_modules/core-websocket/build/core-websocket.html" />  
+<link rel="import" href="../node_modules/ui-pill-list/src/ui-pill-list.html" />  
+
+<polymer-element name="glg-taxonomy" attributes="">
+<template>
+	<link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
+	<content></content>
+
+	<ui-pill>Hi Dog</ui-pill>
+
+    <ui-typeahead id="typeahead" icon="fa-search" placeholder="This is a typeahead" debounce="200">
+
+      
+      <header class="facets" hidden?="{{items.length == 0}}">
+      	<template repeat="{{f, i in facets}}">
+			<small class="facet {{ {active: activeFacet.term == f.term} | tokenList }}" on-click="{{facetClicked}}">{{f.term}} ({{f.count}})<span hidden?="{{i == facets.length -1 }}">&nbsp;&middot;&nbsp;</span></small>
+
+      	</template>
+      	
+      </header>
+
+      <!-- dynamically templated items -->
+      <template id="typeahead-template" repeat="{{item, i in items}}">
+        <ui-typeahead-item>
+          <div on-click="{{onClick}}" style="margin-left: {{ item.depth * 15}}px">
+          	<span style="display:inline-block;width:15px;">
+          		<i hidden?="{{ !(items[i+1].depth > item.depth) }}" class="fa fa-angle-down"></i>
+          	</span>
+          	{{ item.name }} <i hidden?="{{!item.match}}" class="fa fa-check"></i>
+      		</div>
+        </ui-typeahead-item>
+      </template>
+
+    </ui-typeahead>
+
+    <core-websocket id="imposter" urls="wss://elastico.glgroup.com/imposter"></core-websocket>	
+
+</template>
+<script src="./glg-taxonomy.litcoffee"></script>
+</polymer-element>

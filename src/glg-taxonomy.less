@@ -1,0 +1,32 @@
+@import "../node_modules/ui-styles/variables";
+@import "../node_modules/ui-fonts/font-awesome-styles";
+
+:host {
+  display: block;
+  position: relative;
+  box-sizing: border-box;
+  .facets{
+  	padding:10px;
+	  .facet {
+	  	&.active {
+	  		font-weight: bold;
+	  	}
+	  	cursor: pointer;
+	  	white-space: nowrap;
+	  }
+  }
+}
+
+:host::shadow ui-typeahead[selected]::shadow #results {
+    top: 100%;
+    background-color: white;
+    overflow: auto;	
+}
+      
+:host::shadow ui-typeahead::shadow ui-input {
+	opacity: 1 !important;
+}
+
+:host::shadow [selected] {
+	border-bottom: 1px solid rgba(51, 51, 51, 0.1);
+}
