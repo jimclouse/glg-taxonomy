@@ -12436,11 +12436,15 @@ ui-typeahead[selected] ui-typeahead-item[selected]::before {
 			<template if="{{!item.header}}">	
 				
 				<div on-click="{{onClick}}">
+
 					<span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
 					<span class="icon">
 						<i hidden?="{{ !(items[i+1].depth &gt; item.depth) }}" class="fa fa-angle-down"></i>
 					</span>
-					{{ item.name }}
+					<span title="{{item.fullPath}}">
+						{{ item.name }}
+					</span>
+					
 					</span>
 				</div>
 			</template>
