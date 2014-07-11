@@ -34,7 +34,7 @@
 
 ##Methods
 
-      mapElasticResults: (response) ->  
+      mapElasticResults: (response) -> 
         @results = response.hits.hits.map (h) -> 
           h._source._score = h._score
           h._source
@@ -112,7 +112,7 @@
 
       ready: () ->
           @page ?= 1
-          @pageSize ?= 20
+          @pageSize ?= 24
           @items ?= []
 
       attached: ->

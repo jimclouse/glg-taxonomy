@@ -37,5 +37,13 @@
     .icon {
     	display: inline-block;
     	width: 15px;
-    }    
+    }
+    &[focused]{
+        color:white;
+        background-color: #E03C2B;
+    }
+}
+:host::shadow ui-typeahead .header {
+    font-size:.8em;
+    background-color: @hairline-grey;
 }
