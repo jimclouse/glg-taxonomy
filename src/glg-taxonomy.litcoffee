@@ -51,7 +51,7 @@
           return 0
 
         @items = []
-        lastKey = null
+        groupKey = null
         groupDepth = 0
         groups = []
         items = []
@@ -60,25 +60,30 @@
           parents = r.parts.slice(0, r.parts.length - 1)
           parentKey = parents.join(" > ")
 
-          if parentKey.indexOf(lastKey) == -1
+          # new group or last item in results
+          if parentKey.indexOf(groupKey) == -1 || results.length - 1 == j
             
+            # flush  items in group
             if items.length
               items[0].score = items.reduce (acc, v) ->
-                if v._score?
-                  acc += v._score
+                acc += v._score if v._score?
                 acc
               , 0
 
               groups.push items
               items = []
 
+            #set new group
             groupDepth = parents.length - 1
+            groupKey = parentKey
             items.push({header:true, parts:parents})
-          
+            
+          #add items to open group
           r.groupDepth = groupDepth
           items.push(r)
-          lastKey = parentKey
+          
 
+        # sort the group by 'score'
         groups.sort (a, b) ->
           if (a[0].score < b[0].score)
            return 1
@@ -86,6 +91,7 @@
             return -1
           return 0
 
+        # flatten group
         groups.forEach (g) => @items = @items.concat(g)
             
 
