@@ -1,5 +1,4 @@
 @import "../node_modules/ui-styles/variables";
-@import "../node_modules/ui-fonts/font-awesome-styles";
 
 :host {
   display: block;
@@ -11,13 +10,14 @@
     top: 100%;
     background-color: white;
     overflow-y: scroll;
+    max-height: 600px;
 }
 
 :host::shadow ui-typeahead::shadow #results {
     overflow-y: scroll;
 	max-height: 600px;
 }
-      
+
 :host::shadow ui-typeahead::shadow ui-input {
 	opacity: 1 !important;
 	&::shadow #field input {
@@ -31,19 +31,20 @@
 
 :host::shadow ui-typeahead ui-typeahead-item {
     &.header {
+        display:block;
     	font-size:.8em;
     	background-color: @hairline-grey;
-    }
-    .icon {
-    	display: inline-block;
-    	width: 15px;
+        span{
+            display: inline-block;
+        }
     }
     &[focused]{
         color:white;
         background-color: #E03C2B;
     }
 }
-:host::shadow ui-typeahead .header {
-    font-size:.8em;
-    background-color: @hairline-grey;
+
+/* override */
+:host::shadow ui-typeahead ui-typeahead-item::shadow #display {
+    display: inline-block;
 }
