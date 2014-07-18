@@ -29,6 +29,12 @@
         verb: "POST"
         url: "http://localhost:9200/taxonomy_sectors/_search"
 
+      nectarParams:
+        entity: []
+        query: null
+        options:
+          howMany: 5
+
       resultsChanged: (oldVal, newVal) ->
         @mapTree(newVal) if newVal
 
@@ -40,6 +46,8 @@
           h._source
         @total = response.hits.total
 
+      mapNectarResults: (response) -> 
+        @results = response.results[@type]
 
       mapTree: (results) ->
         
@@ -57,6 +65,8 @@
         items = []
 
         results.forEach (r, j) =>
+
+          r.parts = r.fullPath.split(" > ")
           parents = r.parts.slice(0, r.parts.length - 1)
           parentKey = parents.join(" > ")
 
@@ -66,7 +76,7 @@
             # flush  items in group
             if items.length
               items[0].score = items.reduce (acc, v) ->
-                acc += v._score if v._score?
+                acc += v.score if v.score?
                 acc
               , 0
 
@@ -97,30 +107,47 @@
 
 ##Event Handlers
 
+      partClicked: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+        part = src.templateInstance.model.part
+        value = @$.typeahead.$.input.value
+        @$.typeahead.$.input.value = "#{value} #{part}"
+        return false
+
+      onClick: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+        item = src.templateInstance.model.item
+        @selected.push(item)
+
       sendQuery: (e) ->
-        @elasticParams.query.match.name = e.detail.value
-        @payload.data = @elasticParams
-        @$.imposter.send @payload
+        console.log e.detail.value
+        @nectarParams.query = e.detail.value
+        @$.websocket.send @nectarParams
 
       queryResult: (e) ->
-        return unless e.detail.text
-        @mapElasticResults e.detail.text
+        @mapNectarResults e.detail
 
 ##Polymer Lifecycle
 
       created: ->
 
       ready: () ->
-          @page ?= 1
-          @pageSize ?= 24
           @items ?= []
+          @selected ?= []
 
       attached: ->
-        @elasticParams.from = (@page - 1) * @pageSize
-        @elasticParams.size = @pageSize
-
+        @nectarParams.entity.push @type
+        @nectarParams.options.howMany = 20
+        
         @$.typeahead.addEventListener 'inputChange', @sendQuery.bind(@)
-        @$.imposter.addEventListener 'data', @queryResult.bind(@)
+        @$.websocket.addEventListener 'data', @queryResult.bind(@)
+        
+        @addEventListener 'remove', (e) ->
+          node = e.detail.templateInstance.model.templateInstance.model
+          index = @selected.indexOf node
+          @selected.splice index, 1
 
       domReady: ->
 

@@ -1,35 +1,46 @@
 <link rel="import" href="../node_modules/ui-typeahead/src/ui-typeahead.html" />
 <link rel="import" href="../node_modules/core-websocket/build/core-websocket.html" />
-<link rel="import" href="../node_modules/ui-pill-list/src/ui-pill-list.html" />
+<link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 
-<polymer-element name="glg-taxonomy" attributes="">
+<polymer-element name="glg-taxonomy" attributes="type">
 <template>
   <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
   
 
     <ui-typeahead id="typeahead" placeholder="Search taxonomy" debounce="200">
       <content select="icon"></content>
+
+      <template repeat="{{selected}}">
+        <item>
+        <ui-pill>
+          {{name}}
+        </ui-pill>
+        </item>
+
+      </template>
       <!-- dynamically templated items -->
       <template id="typeahead-template" repeat="{{item, i in items}}">
 
         <ui-typeahead-item class="{{ {header: item.header} | tokenList }}">
-      <template if="{{item.header}}" repeat="{{ part, d in item.parts}}">
-        <span hidden?="{{d == 0}}">&nbsp;<icon angle-right></icon>&nbsp;</span><span>{{part}}</span>
-      </template> 
+          <template if="{{item.header}}" repeat="{{ part, d in item.parts}}">
+            <span on-click="{{partClicked}}">
+              <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}</span>
+            </span>
+          </template> 
       
-      <template if="{{!item.header}}">  
-        
-        <div on-click="{{onClick}}">
+          <template if="{{!item.header}}">
+            
+            <div on-click="{{onClick}}">
 
-          <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
-          <span class="icon">
-            <i hidden?="{{ !(items[i+1].depth > item.depth) }}" class="fa fa-angle-down"></i>
-          </span>
-          <span title="{{item.fullPath}}">{{ item.name }}</span>
-          
-          </span>
-        </div>
-      </template>
+              <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
+                <span class="icon">
+                  <i hidden?="{{ !(items[i+1].depth > item.depth) }}" class="fa fa-angle-down"></i>
+                </span>
+                <span title="{{item.fullPath}}">{{ item.name }}</span>
+              </span>
+            </div>
+
+          </template>
 
         </ui-typeahead-item>
         
@@ -37,7 +48,8 @@
 
     </ui-typeahead>
 
-    <core-websocket id="imposter" urls="ws://localhost:7777/imposter"></core-websocket> 
+    <!-- <core-websocket id="imposter" urls="ws://localhost:7777/imposter"></core-websocket>  -->
+    <core-websocket id="websocket" urls="ws://localhost:8000"></core-websocket>
 
 </template>
 <script src="./glg-taxonomy.litcoffee"></script>

@@ -18,11 +18,15 @@
 	max-height: 600px;
 }
 
-:host::shadow ui-typeahead::shadow ui-input {
-	opacity: 1 !important;
-	&::shadow #field input {
-		flex:initial;
-	}
+:host::shadow ui-typeahead::shadow #input.close {
+	.transform(none)
+}
+
+:host item {
+    margin: 0 0.125em 0.125em 0;
+    ui-pill {        
+        overflow: hidden;
+    }
 }
 
 :host::shadow [selected] {
