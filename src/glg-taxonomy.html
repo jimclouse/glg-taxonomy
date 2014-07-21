@@ -2,26 +2,21 @@
 <link rel="import" href="../node_modules/core-websocket/build/core-websocket.html" />
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 
-<polymer-element name="glg-taxonomy" attributes="type">
+<polymer-element name="glg-taxonomy" attributes="type urls">
 <template>
   <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
-  
 
-    <ui-typeahead id="typeahead" placeholder="Search taxonomy" debounce="200">
+    <ui-typeahead id="typeahead" placeholder="Search {{type}} taxonomy" debounce="200">
       <content select="icon"></content>
 
       <template repeat="{{selected}}">
-        <item>
-        <ui-pill>
-          {{name}}
-        </ui-pill>
-        </item>
+        <item><ui-pill>{{nodeName}}</ui-pill></item>
 
       </template>
       <!-- dynamically templated items -->
       <template id="typeahead-template" repeat="{{item, i in items}}">
 
-        <ui-typeahead-item class="{{ {header: item.header} | tokenList }}">
+        <ui-typeahead-item on-click="{{onClick}}" class="{{ {header: item.header} | tokenList }}">
           <template if="{{item.header}}" repeat="{{ part, d in item.parts}}">
             <span on-click="{{partClicked}}">
               <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}</span>
@@ -30,13 +25,13 @@
       
           <template if="{{!item.header}}">
             
-            <div on-click="{{onClick}}">
+            <div>
 
               <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
                 <span class="icon">
-                  <i hidden?="{{ !(items[i+1].depth > item.depth) }}" class="fa fa-angle-down"></i>
+                  
                 </span>
-                <span title="{{item.fullPath}}">{{ item.name }}</span>
+                <span title="{{item.fullPath}}">{{ item.nodeName }}</span>
               </span>
             </div>
 
@@ -48,8 +43,7 @@
 
     </ui-typeahead>
 
-    <!-- <core-websocket id="imposter" urls="ws://localhost:7777/imposter"></core-websocket>  -->
-    <core-websocket id="websocket" urls="ws://localhost:8000"></core-websocket>
+    <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
 
 </template>
 <script src="./glg-taxonomy.litcoffee"></script>

@@ -9,26 +9,6 @@
 
 ##Attributes and Change Handlers
       
-      elasticParams:
-          query:
-              match:
-                  name: null
-
-          facets:
-              firstLevel:
-                  terms:
-                      field: "firstLevel"
-
-          highlight:
-              order: "score"
-              fields:
-                  name:
-                      number_of_fragments: 0
-
-      payload:
-        verb: "POST"
-        url: "http://localhost:9200/taxonomy_sectors/_search"
-
       nectarParams:
         entity: []
         query: null
@@ -39,15 +19,6 @@
         @mapTree(newVal) if newVal
 
 ##Methods
-
-      mapElasticResults: (response) -> 
-        @results = response.hits.hits.map (h) -> 
-          h._source._score = h._score
-          h._source
-        @total = response.hits.total
-
-      mapNectarResults: (response) -> 
-        @results = response.results[@type]
 
       mapTree: (results) ->
         
@@ -112,22 +83,23 @@
         e.stopPropagation()
         part = src.templateInstance.model.part
         value = @$.typeahead.$.input.value
-        @$.typeahead.$.input.value = "#{value} #{part}"
-        return false
+        @$.typeahead.$.input.value = "#{part}"
+        
 
       onClick: (e, _, src) ->
+        console.log arguments, "onClick"
         e.preventDefault()
         e.stopPropagation()
         item = src.templateInstance.model.item
+        return if item.header
         @selected.push(item)
 
       sendQuery: (e) ->
-        console.log e.detail.value
         @nectarParams.query = e.detail.value
         @$.websocket.send @nectarParams
 
       queryResult: (e) ->
-        @mapNectarResults e.detail
+        @results = e.detail.results[@type]
 
 ##Polymer Lifecycle
 
@@ -139,13 +111,19 @@
 
       attached: ->
         @nectarParams.entity.push @type
-        @nectarParams.options.howMany = 20
+        @nectarParams.options.howMany = 48
         
         @$.typeahead.addEventListener 'inputChange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         
+        document.addEventListener 'click', () =>
+          @$.typeahead.$.results.classList.remove 'open'
+
         @addEventListener 'remove', (e) ->
-          node = e.detail.templateInstance.model.templateInstance.model
+          # something weird happens with the target
+          # a log shows path with 15 nodes, then on inspect it has 0 and the target is glg-taxonomy
+          # for now cheat and grab path[0] which is the ui-pill
+          node = e.path[0].templateInstance.model
           index = @selected.indexOf node
           @selected.splice index, 1
 

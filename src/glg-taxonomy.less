@@ -10,12 +10,12 @@
     top: 100%;
     background-color: white;
     overflow-y: scroll;
-    max-height: 600px;
+    max-height: 600px !important;
 }
 
 :host::shadow ui-typeahead::shadow #results {
     overflow-y: scroll;
-	max-height: 600px;
+    max-height: 600px !important;
 }
 
 :host::shadow ui-typeahead::shadow #input.close {
@@ -24,9 +24,8 @@
 
 :host item {
     margin: 0 0.125em 0.125em 0;
-    ui-pill {        
-        overflow: hidden;
-    }
+    line-height: auto;
+    
 }
 
 :host::shadow [selected] {
