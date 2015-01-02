@@ -1,50 +1,52 @@
 <link rel="import" href="../node_modules/ui-typeahead/src/ui-typeahead.html" />
-<link rel="import" href="../node_modules/core-websocket/build/core-websocket.html" />
+<link rel="import" href="../node_modules/core-websocket/src/core-websocket.html" />
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 
 <polymer-element name="glg-taxonomy" attributes="type urls">
-<template>
-  <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
+  <template>
+    <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
-    <ui-typeahead id="typeahead" placeholder="Search {{type}} taxonomy" debounce="200">
-      <content select="icon"></content>
+      <ui-typeahead id="typeahead" multiselect placeholder="Search {{type}} taxonomy" debounce="200">
 
-      <template repeat="{{selected}}">
-        <item><ui-pill>{{nodeName}}</ui-pill></item>
+        <template value="{{value}}">
+          <value>
+            <ui-pill>{{item.nodeName}}</ui-pill>
+          </value>
+        </template>
 
-      </template>
-      <!-- dynamically templated items -->
-      <template id="typeahead-template" repeat="{{item, i in items}}">
+        <template if="{{termMatched === false}}">
+          <ui-typeahead-item on-click="{{noop}}">
+            Nothing matched
+          </ui-typeahead-item>
+        </template>
 
-        <ui-typeahead-item on-click="{{onClick}}" class="{{ {header: item.header} | tokenList }}">
-          <template if="{{item.header}}" repeat="{{ part, d in item.parts}}">
-            <span on-click="{{partClicked}}">
-              <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}</span>
-            </span>
-          </template> 
-      
-          <template if="{{!item.header}}">
-            
-            <div>
+        <template id="typeahead-template" repeat="{{item, i in items}}">
 
-              <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
-                <span class="icon">
-                  
-                </span>
-                <span title="{{item.fullPath}}">{{ item.nodeName }}</span>
-              </span>
-            </div>
-
-          </template>
-
-        </ui-typeahead-item>
+            <template if="{{item.header}}">
+              <ui-typeahead-item class="header" on-click="{{noop}}">
+                <template repeat="{{ part, d in item.parts}}">
+                  <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}<span>
+                </template>
+              </ui-typeahead-item>
+            </template> 
         
-      </template>
+            <template if="{{!item.header}}">
+              <ui-typeahead-item>
+                <div>
+                  <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
+                    <span class="icon"></span>
+                    <span title="{{item.fullPath}}">{{ item.nodeName }}</span>
+                  </span>
+                </div>
+              </ui-typeahead-item>
+            </template>
 
-    </ui-typeahead>
+        </template>
 
-    <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
+      </ui-typeahead>
 
-</template>
-<script src="./glg-taxonomy.litcoffee"></script>
+      <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
+
+  </template>
+  <script src="./glg-taxonomy.litcoffee"></script>
 </polymer-element>

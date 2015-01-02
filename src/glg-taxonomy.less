@@ -41,6 +41,12 @@
             display: inline-block;
         }
     }
+    &.no-matches[focused], &.no-matches {
+        font-weight:bold;
+        color:#E03C2B;
+        background-color: @hairline-grey;
+        cursor:default;
+    }
     &[focused]{
         color:white;
         background-color: #E03C2B;

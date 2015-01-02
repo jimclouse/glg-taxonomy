@@ -15,12 +15,13 @@
         options:
           howMany: 5
 
-      resultsChanged: (oldVal, newVal) ->
-        @mapTree(newVal) if newVal
+      resultsChanged: (oldResults, newResults) ->
+        return unless newResults
+        @formatResults newResults
 
 ##Methods
 
-      mapTree: (results) ->
+      formatResults: (results) ->
         
         results.sort (a, b) ->
           if (a.fullPath > b.fullPath)
@@ -30,6 +31,7 @@
           return 0
 
         @items = []
+
         groupKey = null
         groupDepth = 0
         groups = []
@@ -57,7 +59,8 @@
             #set new group
             groupDepth = parents.length - 1
             groupKey = parentKey
-            items.push({header:true, parts:parents})
+
+            items.push({header:true, parts:parents, fullPath: r.fullPath})
             
           #add items to open group
           r.groupDepth = groupDepth
@@ -77,29 +80,19 @@
             
 
 ##Event Handlers
-
-      partClicked: (e, _, src) ->
-        e.preventDefault()
-        e.stopPropagation()
-        part = src.templateInstance.model.part
-        value = @$.typeahead.$.input.value
-        @$.typeahead.$.input.value = "#{part}"
         
-
-      onClick: (e, _, src) ->
-        console.log arguments, "onClick"
+      noop: (e, _, src) ->
         e.preventDefault()
         e.stopPropagation()
-        item = src.templateInstance.model.item
-        return if item.header
-        @selected.push(item)
 
       sendQuery: (e) ->
         @nectarParams.query = e.detail.value
         @$.websocket.send @nectarParams
 
       queryResult: (e) ->
-        @results = e.detail.results[@type]
+        results = e.detail.results[@type] || []
+        @termMatched = results.length > 0
+        @results = results
 
 ##Polymer Lifecycle
 
@@ -107,25 +100,26 @@
 
       ready: () ->
           @items ?= []
-          @selected ?= []
+          @value ?= []
 
       attached: ->
+        
         @nectarParams.entity.push @type
         @nectarParams.options.howMany = 48
         
-        @$.typeahead.addEventListener 'inputChange', @sendQuery.bind(@)
+        @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         
         document.addEventListener 'click', () =>
           @$.typeahead.$.results.classList.remove 'open'
 
-        @addEventListener 'remove', (e) ->
-          # something weird happens with the target
-          # a log shows path with 15 nodes, then on inspect it has 0 and the target is glg-taxonomy
-          # for now cheat and grab path[0] which is the ui-pill
-          node = e.path[0].templateInstance.model
-          index = @selected.indexOf node
-          @selected.splice index, 1
+        @addEventListener 'itemremoved', (e) ->
+          @value = @$.typeahead.value.map (v) -> v.item
+
+        @addEventListener 'itemadded', (e) ->
+          @results = []
+          @value = @$.typeahead.value.map (v) -> v.item
+
 
       domReady: ->
 
