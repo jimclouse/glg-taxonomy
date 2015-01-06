@@ -6,7 +6,7 @@
     "polymer": "git://github.com/custom-elements/polymer#master",
     "ui-styles": "git://github.com/custom-elements/ui-styles#master",
     "ui-fonts": "git://github.com/custom-elements/ui-fonts.git",
-    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git",
+    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#de_lodash",
     "ui-pill": "git://github.com/custom-elements/ui-pill.git",
     "core-websocket": "git://github.com/custom-elements/core-websocket.git"
   },
