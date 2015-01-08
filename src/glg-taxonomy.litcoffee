@@ -19,6 +19,10 @@
         return unless newResults
         @formatResults newResults
 
+      # valueChanged: (oldValue, newValue) ->
+      #   return unless newValue
+      #   @$.typeahead.value = newValue.map (v) -> {item:v}
+
 ##Methods
 
       formatResults: (results) ->
@@ -38,7 +42,7 @@
         items = []
 
         results.forEach (r, j) =>
-
+        
           r.parts = r.fullPath.split(" > ")
           parents = r.parts.slice(0, r.parts.length - 1)
           parentKey = parents.join(" > ")

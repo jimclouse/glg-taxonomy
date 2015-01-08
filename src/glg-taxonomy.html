@@ -15,7 +15,7 @@
         </template>
 
         <template if="{{termMatched === false}}">
-          <ui-typeahead-item on-click="{{noop}}">
+          <ui-typeahead-item label>
             Nothing matched
           </ui-typeahead-item>
         </template>
@@ -23,7 +23,7 @@
         <template id="typeahead-template" repeat="{{item, i in items}}">
 
             <template if="{{item.header}}">
-              <ui-typeahead-item class="header" on-click="{{noop}}">
+              <ui-typeahead-item class="header" label>
                 <template repeat="{{ part, d in item.parts}}">
                   <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}<span>
                 </template>
