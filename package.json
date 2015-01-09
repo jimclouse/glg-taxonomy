@@ -2,16 +2,16 @@
   "name": "glg-taxonomy",
   "version": "0.0.0",
   "dependencies": {
-    "polymer-build": "",
-    "polymer": "git://github.com/custom-elements/polymer#master",
+    "polymer": "git://github.com/custom-elements/polymer",
+    "polymer-serve": "git://github.com/custom-elements/polymer-serve",
     "ui-styles": "git://github.com/custom-elements/ui-styles#master",
     "ui-fonts": "git://github.com/custom-elements/ui-fonts.git",
-    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#taxonomy",
+    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#master",
     "ui-pill": "git://github.com/custom-elements/ui-pill.git",
     "core-websocket": "git://github.com/custom-elements/core-websocket.git"
   },
   "license": "ISC",
   "scripts": {
-    "test": "polymer-build watch . src/ build/"
+    "test": "polymer-serve . "
   }
 }
