@@ -8,6 +8,7 @@
     "ui-fonts": "git://github.com/custom-elements/ui-fonts.git",
     "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#master",
     "ui-pill": "git://github.com/custom-elements/ui-pill.git",
+    "ui-tooltip": "git://github.com/custom-elements/ui-tooltip.git",
     "core-websocket": "git://github.com/custom-elements/core-websocket.git"
   },
   "license": "ISC",

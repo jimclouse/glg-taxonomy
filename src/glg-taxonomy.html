@@ -1,4 +1,5 @@
 <link rel="import" href="../node_modules/ui-typeahead/src/ui-typeahead.html" />
+<link rel="import" href="../node_modules/ui-tooltip/src/ui-tooltip.html" />
 <link rel="import" href="../node_modules/core-websocket/src/core-websocket.html" />
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 
@@ -32,12 +33,12 @@
         
             <template if="{{!item.header}}">
               <ui-typeahead-item>
-                <div>
+                <ui-tooltip label="{{item.fullPath}}">
                   <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
                     <span class="icon"></span>
-                    <span title="{{item.fullPath}}">{{ item.nodeName }}</span>
+                    <span>{{ item.nodeName }}</span>
                   </span>
-                </div>
+                </ui-tooltip>
               </ui-typeahead-item>
             </template>
 
