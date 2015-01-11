@@ -106,6 +106,10 @@
           @items ?= []
           @value ?= []
 
+      publish:
+        value:
+          reflect: true
+
       attached: ->
         
         @nectarParams.entity.push @type
