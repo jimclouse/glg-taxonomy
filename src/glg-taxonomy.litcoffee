@@ -21,6 +21,7 @@
 
       valueChanged: (oldValue, newValue) ->
         return unless newValue
+        newValue = JSON.parse(newValue) if typeof(newValue) is "string"
         @$.typeahead.value = newValue.map (v) -> {item:v}
         @fire('change', newValue) if newValue != oldValue
 
