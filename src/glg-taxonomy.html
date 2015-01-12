@@ -3,11 +3,11 @@
 <link rel="import" href="../node_modules/core-websocket/src/core-websocket.html" />
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 
-<polymer-element name="glg-taxonomy" attributes="type urls">
+<polymer-element name="glg-taxonomy" attributes="type urls value placeholder debounce">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
-      <ui-typeahead id="typeahead" multiselect placeholder="Search {{type}} taxonomy" debounce="200">
+      <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}" debounce="{{debounce}}">
 
         <template value="{{value}}">
           <value>

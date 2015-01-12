@@ -19,9 +19,10 @@
         return unless newResults
         @formatResults newResults
 
-      # valueChanged: (oldValue, newValue) ->
-      #   return unless newValue
-      #   @$.typeahead.value = newValue.map (v) -> {item:v}
+      valueChanged: (oldValue, newValue) ->
+        return unless newValue
+        @$.typeahead.value = newValue.map (v) -> {item:v}
+        @fire('change', newValue) if newValue != oldValue
 
 ##Methods
 
@@ -103,12 +104,9 @@
       created: ->
 
       ready: () ->
-          @items ?= []
-          @value ?= []
-
-      publish:
-        value:
-          reflect: true
+          @items ||= []
+          @placeholder ||= ""
+          @debounce ||= 250
 
       attached: ->
         
@@ -132,3 +130,9 @@
       domReady: ->
 
       detached: ->
+
+      publish:
+        value:
+          value: []
+          reflect: true
+

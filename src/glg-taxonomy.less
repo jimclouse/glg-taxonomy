@@ -18,14 +18,12 @@
     max-height: 600px !important;
 }
 
-:host::shadow ui-typeahead::shadow #input.close {
-	.transform(none)
+:host::shadow ui-typeahead::shadow #value-input {
+    padding-bottom: .25em;
 }
 
-:host item {
-    margin: 0 0.125em 0.125em 0;
-    line-height: auto;
-    
+:host::shadow ui-typeahead::shadow #input.close {
+	.transform(none)
 }
 
 :host::shadow [selected] {
