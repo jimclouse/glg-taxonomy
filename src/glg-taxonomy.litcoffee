@@ -100,6 +100,9 @@
         @termMatched = results.length > 0
         @results = results
 
+      onBlur: ->
+        @fire "blur"
+
 ##Polymer Lifecycle
 
       created: ->
