@@ -105,7 +105,9 @@
 
       ready: () ->
           @items ||= []
-          @placeholder ||= ""
+          # hack for now because an empty placeholder has a different height than the input
+          # play with styles later
+          @placeholder ||= " "
           @debounce ||= 250
 
       attached: ->
