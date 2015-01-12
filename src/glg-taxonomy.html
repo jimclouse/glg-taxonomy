@@ -11,7 +11,9 @@
 
         <template value="{{value}}">
           <value>
-            <ui-pill>{{item.nodeName}}</ui-pill>
+            <ui-tooltip label="{{item.fullPath}}">
+              <ui-pill>{{item.nodeName}}</ui-pill>
+            </ui-tooltip>
           </value>
         </template>
 
