@@ -86,10 +86,6 @@
             
 
 ##Event Handlers
-        
-      noop: (e, _, src) ->
-        e.preventDefault()
-        e.stopPropagation()
 
       sendQuery: (e) ->
         @nectarParams.query = e.detail.value
@@ -123,11 +119,12 @@
           @$.typeahead.$.results.classList.remove 'open'
 
         @addEventListener 'itemremoved', (e) ->
-          @value = @$.typeahead.value.map (v) -> v.item
+          index = @value.indexOf e.detail.item
+          @value.splice index, 1
 
         @addEventListener 'itemadded', (e) ->
           @results = []
-          @value = @$.typeahead.value.map (v) -> v.item
+          @value.push e.detail.item
 
 
       domReady: ->
