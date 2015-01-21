@@ -1,19 +1,12 @@
 #glg-taxonomy
 *TODO* tell me all about your element.
 
-
     Polymer 'glg-taxonomy',
 
 ##Events
 *TODO* describe the custom event `name` and `detail` that are fired.
 
 ##Attributes and Change Handlers
-      
-      nectarParams:
-        entity: []
-        query: null
-        options:
-          howMany: 5
 
       resultsChanged: (oldResults, newResults) ->
         return unless newResults
@@ -27,74 +20,28 @@
 
 ##Methods
 
-      formatResults: (results) ->
-        
-        results.sort (a, b) ->
-          if (a.fullPath > b.fullPath)
-           return 1
-          if (a.fullPath < b.fullPath)
-            return -1
-          return 0
+      formatResults: (results) ->        
+        # highlighting
+        re = new RegExp @payload.data.term, "ig"
+        results = results.map (result) =>
+          result.highlight = result.fullPath.replace(re, "<em>"+@payload.data.term+"</em>")
+          return result
 
-        @items = []
-
-        groupKey = null
-        groupDepth = 0
-        groups = []
-        items = []
-
-        results.forEach (r, j) =>
-        
-          r.parts = r.fullPath.split(" > ")
-          parents = r.parts.slice(0, r.parts.length - 1)
-          parentKey = parents.join(" > ")
-
-          # new group or last item in results
-          if parentKey.indexOf(groupKey) == -1 || results.length - 1 == j
-            
-            # flush  items in group
-            if items.length
-              items[0].score = items.reduce (acc, v) ->
-                acc += v.score if v.score?
-                acc
-              , 0
-
-              groups.push items
-              items = []
-
-            #set new group
-            groupDepth = parents.length - 1
-            groupKey = parentKey
-
-            items.push({header:true, parts:parents, fullPath: r.fullPath})
-            
-          #add items to open group
-          r.groupDepth = groupDepth
-          items.push(r)
-          
-
-        # sort the group by 'score'
-        groups.sort (a, b) ->
-          if (a[0].score < b[0].score)
-           return 1
-          if (a[0].score > b[0].score)
-            return -1
-          return 0
-
-        # flatten group
-        groups.forEach (g) => @items = @items.concat(g)
+        @items = results
             
 
 ##Event Handlers
 
       sendQuery: (e) ->
-        @nectarParams.query = e.detail.value
-        @$.websocket.send @nectarParams
+        delete @termMatched
+        @payload.data.term = e.detail.value
+        @$.websocket.send @payload
 
       queryResult: (e) ->
-        results = e.detail.results[@type] || []
+        results = e.detail.text || []
         @termMatched = results.length > 0
         @results = results
+        
 
 ##Polymer Lifecycle
 
@@ -105,13 +52,20 @@
           # hack for now because an empty placeholder has a different height than the input
           # play with styles later
           @placeholder ||= " "
-          @debounce ||= 250
 
       attached: ->
-        
-        @nectarParams.entity.push @type
-        @nectarParams.options.howMany = 48
-        
+
+        urlMap = 
+          'sector': "Sector"
+          'job-function': "JobFunction"
+          'region': "Region"
+
+        @payload = 
+          verb: "POST"
+          url: "https://query.glgroup.com/taxonomy/search#{urlMap[@type]}.mustache"
+          data:
+            limit: 12
+
         @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         

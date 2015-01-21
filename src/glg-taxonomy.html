@@ -2,6 +2,7 @@
 <link rel="import" href="../node_modules/ui-tooltip/src/ui-tooltip.html" />
 <link rel="import" href="../node_modules/core-websocket/src/core-websocket.html" />
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
+<link rel="import" href="safe-html.html" />
 
 <polymer-element name="glg-taxonomy" attributes="type urls value placeholder debounce">
   <template>
@@ -12,7 +13,7 @@
         <template value="{{value}}">
           <value>
             <ui-tooltip label="{{item.fullPath}}">
-              <ui-pill>{{item.nodeName}}</ui-pill>
+              <ui-pill>{{item.name}}</ui-pill>
             </ui-tooltip>
           </value>
         </template>
@@ -24,26 +25,9 @@
         </template>
 
         <template id="typeahead-template" repeat="{{item, i in items}}">
-
-            <template if="{{item.header}}">
-              <ui-typeahead-item class="header" label>
-                <template repeat="{{ part, d in item.parts}}">
-                  <span hidden?="{{d == 0}}">&nbsp;&gt;&nbsp;</span><span>{{part}}<span>
-                </template>
-              </ui-typeahead-item>
-            </template> 
-        
-            <template if="{{!item.header}}">
-              <ui-typeahead-item>
-                <ui-tooltip label="{{item.fullPath}}">
-                  <span style="margin-left: {{ (item.depth - item.groupDepth) * 15 }}px;">
-                    <span class="icon"></span>
-                    <span>{{ item.nodeName }}</span>
-                  </span>
-                </ui-tooltip>
-              </ui-typeahead-item>
-            </template>
-
+          <ui-typeahead-item>
+            <safe-html html="{{ item.highlight }}"></safe-html>
+          </ui-typeahead-item>
         </template>
 
       </ui-typeahead>
