@@ -13,7 +13,7 @@
         <template value="{{value}}">
           <value>
             <ui-tooltip label="{{item.fullPath}}">
-              <ui-pill>{{item.nodeName}}</ui-pill>
+              <ui-pill>{{item.name}}</ui-pill>
             </ui-tooltip>
           </value>
         </template>
@@ -26,7 +26,7 @@
 
         <template id="typeahead-template" repeat="{{item, i in items}}">        
           <ui-typeahead-item>
-            <safe-html html="{{ item.highlight }}"></safe-html>
+            <safe-html html="{{ item.fullPath }}"></safe-html>
           </ui-typeahead-item>
         </template>
 

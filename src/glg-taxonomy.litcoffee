@@ -7,11 +7,22 @@
 
 ##Attributes and Change Handlers
       
-      nectarParams:
-        entity: []
-        query: null
-        options:
-          howMany: 5
+      elasticParams:
+          query:
+              multi_match:
+                  query: null
+                  fields: ["name","fullPath"]
+
+          facets:
+              firstLevel:
+                  terms:
+                      field: "firstLevel"
+
+          highlight:
+              order: "score"
+              fields:
+                  fullPath:
+                      number_of_fragments: 0
 
       resultsChanged: (oldResults, newResults) ->
         return unless newResults
@@ -26,30 +37,23 @@
 ##Methods
 
       formatResults: (results) ->
-
-        # highlighting
-        re = new RegExp @nectarParams.query, "ig"
-        results = results.map (result) =>
-          result.highlight = result.fullPath.replace re, "<em>#{@nectarParams.query}</em>"
-          return result
-        
-        results.sort (a, b) ->
-          if (a.score > b.score)
-           return 1
-          if (a.score < b.score)
-            return -1
-          return 0
-
         @items = results
 
 ##Event Handlers
 
       sendQuery: (e) ->
-        @nectarParams.query = e.detail.value
-        @$.websocket.send @nectarParams
+        @elasticParams.query.multi_match.query = e.detail.value
+        @payload.data = @elasticParams
+        @$.websocket.send @payload
 
       queryResult: (e) ->
-        results = e.detail.results[@type] || []
+        return unless e.detail.text
+        response = e.detail.text
+        results = response.hits.hits.map (h) -> 
+          Object.keys(h.highlight).forEach (k) -> 
+            h._source[k] = h.highlight[k][0]
+          h._source
+
         @termMatched = results.length > 0
         @results = results
 
@@ -64,15 +68,21 @@
           @placeholder ||= " "
 
       attached: ->
-        
-        @nectarParams.entity.push @type
-        @nectarParams.options.howMany = 48
-        
+
+        urlMap = 
+          'sector': "sectors"
+          'job-function': "job_functions"
+          'region': "regions"
+
+        @payload = 
+          verb: "POST"
+          url: "https://elastico.glgroup.com/taxonomy_#{urlMap[@type]}/_search"
+
+        @elasticParams.from = 0
+        @elasticParams.size = 12
+
         @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
-        
-        document.addEventListener 'click', () =>
-          @$.typeahead.$.results.classList.remove 'open'
 
         @addEventListener 'itemremoved', (e) ->
           index = @value.indexOf e.detail.item
