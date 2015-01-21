@@ -3,7 +3,6 @@
   <script>
     Polymer('safe-html', {
       htmlChanged: function() {
-        console.log(this, arguments)
         // WARNING: potential XSS vulnerability if `html` comes from an untrusted source
         this.innerHTML = this.html;
       }

@@ -24,7 +24,7 @@
         # highlighting
         re = new RegExp @payload.data.term, "ig"
         results = results.map (result) =>
-          result.highlight = result.fullPath.replace(re, "<em>"+@payload.data.term+"</em>")
+          result.highlight = result.fullPath.replace re, "<em>#{@payload.data.term}</em>"
           return result
 
         @items = results
