@@ -9,6 +9,12 @@
   }  
 }
 
+:host::shadow ui-typeahead{
+    display: block;
+    justify-content: initial;
+}
+
+
 :host::shadow ui-typeahead[selected]::shadow #results {
     top: 100%;
     background-color: white;
@@ -21,20 +27,33 @@
     max-height: 600px !important;
 }
 
-:host::shadow ui-typeahead::shadow #input.close {
-	.transform(none)
+// :host::shadow ui-typeahead::shadow #input.close {
+// 	.transform(none)
+// }
+
+// :host::shadow ui-typeahead ui-typeahead-section {
+//   display: block;
+//   position: absolute;
+//   top: 100%;
+//   z-index: 999;
+//   left: 0;
+//   right: 0;
+// }
+
+
+:host::shadow ui-typeahead::shadow ui-input::shadow #field #value-input {
+  padding: @micropad @pad;
 }
 
-:host::shadow [selected] {
-	border-bottom: 1px solid rgba(51, 51, 51, 0.1);
+:host::shadow ui-typeahead::shadow ui-input[focused]::shadow #field #value-input {
+	border-bottom: none;
 }
 
 :host::shadow ui-typeahead ui-typeahead-item {
     &.header {
         display:block;
-    	font-size:.8em;
     	background-color: @hairline-grey;
-        span{
+        span {
             display: inline-block;
         }
     }
@@ -53,4 +72,20 @@
 /* override */
 :host::shadow ui-typeahead ui-typeahead-item::shadow #display {
     display: inline-block;
+}
+
+:host::shadow ui-typeahead ui-typeahead-section {
+    span[on-click] {
+     font-size: .9em;
+     text-decoration: none;
+     color: @blue;
+     cursor: pointer;
+    }
+    .selected-facets, .available-facets{
+        padding: @micropad @pad;
+    }
+}
+
+.odd {
+    background-color: @off-white;
 }

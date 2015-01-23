@@ -4,33 +4,59 @@
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 <link rel="import" href="safe-html.html" />
 
-<polymer-element name="glg-taxonomy" attributes="type urls value placeholder debounce">
+<polymer-element on-focusout="{{focusOut}}" on-focusin="{{focusIn}}" name="glg-taxonomy" attributes="type urls value placeholder">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
-      <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}" debounce="{{debounce}}">
-        <content select="icon"></content>
-        <template value="{{value}}">
-          <value>
-            <ui-tooltip label="{{item.fullPath}}">
-              <ui-pill>{{item.name}}</ui-pill>
-            </ui-tooltip>
-          </value>
-        </template>
+        <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}">
 
-        <template if="{{termMatched === false}}">
-          <ui-typeahead-item label>
-            Nothing matched
-          </ui-typeahead-item>
-        </template>
+          <template if="{{showFilter}}">
+            <ui-typeahead-section>
+              <div class="selected-facets">
+                Searching in
+                &nbsp;&middot;&nbsp;<span on-click="{{clearFacets}}">All {{pluralMap[type]}}</span>
+                <template repeat="{{facet in activeFacets}}">
+                  &gt;&nbsp;<span on-click="{{removeAfterFacet}}">{{facet.term}}</span>
+                </template>
+              </div>
 
-        <template id="typeahead-template" repeat="{{item, i in items}}">        
-          <ui-typeahead-item>
-            <safe-html html="{{ item.fullPath }}"></safe-html>
-          </ui-typeahead-item>
-        </template>
+              <template if="{{availableFacets.length}}">
+                <div class="available-facets">
+                  Narrow to
+                  <template repeat="{{facet in availableFacets}}">
+                    &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}}</span>
+                  </template>
+                </div>
+              </template>
 
-      </ui-typeahead>
+            </ui-typeahead-section>
+          </template>
+
+          <template value="{{value}}">
+            <value>
+              <ui-tooltip label="{{item.fullPath}}">
+                <ui-pill>{{item.nodeName}}</ui-pill>
+              </ui-tooltip>
+            </value>
+          </template>
+
+          <template if="{{termMatched === false}}">
+            <ui-typeahead-section>
+              Nothing matched
+            </ui-typeahead-section>
+          </template>
+
+          <template id="typeahead-template" repeat="{{item, i in items}}">        
+            <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}">
+              <template repeat="{{part in item.parts}}">
+                <span hidden?="{{part.depth < activeFacets.length}}">
+                  <i hidden?="{{part.depth == activeFacets.length}}">&nbsp;&gt;&nbsp;</i> <safe-html on-click="{{browseToPart}}" html="{{ part.nodeName }}"></safe-html>
+                </span>
+              </template>
+            </ui-typeahead-item>
+          </template>
+
+        </ui-typeahead>
 
       <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
 
