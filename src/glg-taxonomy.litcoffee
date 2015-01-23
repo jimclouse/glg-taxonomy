@@ -43,9 +43,10 @@
 
       formatResults: (results) ->
         @items = results.map (item) ->
-          parts = item["_fullPath"].split(' > ')
+          parts = item.fullPath.split(' > ')
+          highlights = item.highlight.fullPath.split(' > ')
           item.parts = parts.map (part, i) ->
-            {nodeName:part, depth:i, parts: parts.slice 0, i + 1}
+            {nodeName:part, highlight: highlights[i], depth:i, parts: parts.slice 0, i + 1}
           item
 
       browseToPart: (e, _, src) ->
@@ -141,9 +142,9 @@
         @availableFacets = response.facets["level_#{@facetDepth}"].terms
         
         results = response.hits.hits.map (h) -> 
-          h._source["_fullPath"] = h._source.fullPath
+          h._source.highlight = {}
           Object.keys(h.highlight).forEach (k) -> 
-            h._source[k] = h.highlight[k][0]
+            h._source.highlight[k] = h.highlight[k][0]
           h._source
 
         @termMatched = results.length > 0
