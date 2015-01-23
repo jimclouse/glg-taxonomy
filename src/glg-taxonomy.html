@@ -20,14 +20,17 @@
                 </template>
               </div>
 
-              <template if="{{availableFacets.length}}">
+              
                 <div class="available-facets">
                   Narrow to
+                  <template if="{{availableFacets.length == 0}}">
+                    <icon building></icon>&nbsp;Loading
+                  </template>
                   <template repeat="{{facet in availableFacets}}">
                     &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}} ({{facet.count}})</span>
                   </template>
                 </div>
-              </template>
+              
 
             </ui-typeahead-section>
           </template>
