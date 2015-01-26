@@ -8,15 +8,19 @@
 ##Attributes and Change Handlers
       
       elasticParams:
+
         query:
-          filtered:
+          constant_score:
             query:
-              multi_match:
-                query: null
-                fields: ["fullPath"]
-            filter:
-              bool:
-                must: []
+              match:
+                nodeName_simple:
+                  query:
+                    type: "phrase_prefix"
+        
+        sort: [
+            {depth: { order: "asc"}},
+            {id: { order: "asc"}}
+          ]
 
         facets:
           level_0:
@@ -26,7 +30,7 @@
         highlight:
           order: "score"
           fields:
-            fullPath:
+            nodeName_simple:
               number_of_fragments: 0
 
       resultsChanged: (oldResults, newResults) ->
@@ -138,7 +142,7 @@
         @availableFacets = []
         return unless e.detail.text
         response = e.detail.text
-        
+        console.log response
         @availableFacets = response.facets["level_#{@facetDepth}"].terms
         
         results = response.hits.hits.map (h) -> 
@@ -172,22 +176,24 @@
 
         @payload = 
           verb: "post"
-          url: "https://services.glgresearch.com/cerca/taxonomy_#{urlMap[@type]}/_search"
+          url: "http://localhost:9200/taxonomy_#{urlMap[@type]}/_search"
           json: true
           body: @elasticParams
-          headers: 
-            authorization: "Basic c3ZjU3RhcnBobGVldExEQVA6NHJhdFVSYXM="
+          # headers: 
+          #   authorization: "Basic c3ZjU3RhcnBobGVldExEQVA6NHJhdFVSYXM="
 
         @activeFacets = []
         @availableFacets = []
         @facetDepth = 0
         @showFilter = false
 
+        @queryTerm = ""
+
         @elasticParams.from = 0
         @elasticParams.size = 12
-
+        
         @$.typeahead.addEventListener 'inputchange', (e) =>
-          @elasticParams.query.filtered.query.multi_match.query = e.detail.value
+          @elasticParams.query.filtered.query.constant_score.query.function_score.query.multi_match.query = e.detail.value
           @$.websocket.send @payload
 
         @$.websocket.addEventListener 'data', @queryResult.bind(@)

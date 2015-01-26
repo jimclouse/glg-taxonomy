@@ -9,36 +9,9 @@
   }  
 }
 
-:host::shadow ui-typeahead{
-    display: block;
-    justify-content: initial;
+:host::shadow ui-typeahead ui-typeahead-section {
+  display: block;
 }
-
-
-:host::shadow ui-typeahead[selected]::shadow #results {
-    top: 100%;
-    background-color: white;
-    overflow-y: scroll;
-    max-height: 600px !important;
-}
-
-:host::shadow ui-typeahead::shadow #results {
-    overflow-y: scroll;
-    max-height: 600px !important;
-}
-
-// :host::shadow ui-typeahead::shadow #input.close {
-// 	.transform(none)
-// }
-
-// :host::shadow ui-typeahead ui-typeahead-section {
-//   display: block;
-//   position: absolute;
-//   top: 100%;
-//   z-index: 999;
-//   left: 0;
-//   right: 0;
-// }
 
 
 :host::shadow ui-typeahead::shadow ui-input::shadow #field #value-input {

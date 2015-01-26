@@ -8,10 +8,10 @@
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
-        <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}">
+        <ui-typeahead id="typeahead" multiselect sticky placeholder="{{placeholder}}">
 
           <template if="{{showFilter}}">
-            <ui-typeahead-section>
+            <ui-typeahead-header>
               <div class="selected-facets">
                 Searching in
                 &nbsp;&middot;&nbsp;<span on-click="{{clearFacets}}">All {{pluralMap[type]}}</span>
@@ -19,20 +19,19 @@
                   &gt;&nbsp;<span on-click="{{removeAfterFacet}}">{{facet.term}}</span>
                 </template>
               </div>
-
               
-                <div class="available-facets">
-                  Narrow to
-                  <template if="{{availableFacets.length == 0}}">
-                    <icon building></icon>&nbsp;Loading
-                  </template>
-                  <template repeat="{{facet in availableFacets}}">
-                    &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}} ({{facet.count}})</span>
-                  </template>
-                </div>
+              <div class="available-facets">
+                Narrow to
+                <template if="{{availableFacets.length == 0}}">
+                  
+                </template>
+                <template repeat="{{facet in availableFacets}}">
+                  &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}} ({{facet.count}})</span>
+                </template>
+              </div>
               
 
-            </ui-typeahead-section>
+            </ui-typeahead-header>
           </template>
 
           <template value="{{value}}">
@@ -44,21 +43,21 @@
           </template>
 
           <template if="{{termMatched === false}}">
-            <ui-typeahead-section>
+            <ui-typeahead-header>
               Nothing matched
-            </ui-typeahead-section>
+            </ui-typeahead-header>
           </template>
 
           <template id="typeahead-template" repeat="{{item, i in items}}">        
             <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}">
               <template repeat="{{part in item.parts}}">
                 <span hidden?="{{part.depth < activeFacets.length}}">
-                  <i hidden?="{{part.depth == activeFacets.length}}">&nbsp;&gt;&nbsp;</i> <safe-html on-click="{{browseToPart}}" html="{{ part.highlight }}"></safe-html>
+                  <i hidden?="{{part.depth == activeFacets.length}}">&nbsp;&gt;&nbsp;</i> <safe-html html="{{ part.highlight }}"></safe-html> <span on-click="{{browseToPart}}">&#8635;</span>
                 </span>
               </template>
             </ui-typeahead-item>
           </template>
-
+  
         </ui-typeahead>
 
       <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
