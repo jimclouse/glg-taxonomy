@@ -56,16 +56,17 @@
       attached: ->
 
         typeMap = 
-          'sector': "Sector"
-          'job-function': "JobFunction"
-          'region': "Region"
+          'sector': "sector"
+          'job-function': "job_function"
+          'region': "region"
 
         @limit = 8
 
         @payload = 
-          verb: "POST"
-          url: "https://query.glgroup.com/taxonomy/searchTaxonomyType.mustache?type=#{typeMap[@type]}"
+          verb: "post"
+          url: "https://query.glgroup.com/taxonomy/searchTaxonomyType.mustache"
           data:
+            type: typeMap[@type]
             limit: @limit
             term: null
 
