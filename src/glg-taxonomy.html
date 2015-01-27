@@ -4,7 +4,7 @@
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 <link rel="import" href="safe-html.html" />
 
-<polymer-element name="glg-taxonomy" attributes="type urls value placeholder debounce">
+<polymer-element name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
@@ -13,7 +13,7 @@
         <template value="{{value}}">
           <value>
             <ui-tooltip label="{{item.fullPath}}">
-              <ui-pill>{{item.name}}</ui-pill>
+              <ui-pill>{{item.nodeName}}</ui-pill>
             </ui-tooltip>
           </value>
         </template>
@@ -32,7 +32,7 @@
 
       </ui-typeahead>
 
-      <core-websocket id="websocket" urls="{{urls}}"></core-websocket>
+      <core-websocket id="websocket" urls="{{imposter}}"></core-websocket>
 
   </template>
   <script src="./glg-taxonomy.litcoffee"></script>
