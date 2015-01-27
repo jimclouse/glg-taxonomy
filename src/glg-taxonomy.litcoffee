@@ -22,9 +22,9 @@
 
       formatResults: (results) ->        
         # highlighting
-        re = new RegExp @payload.data.term, "ig"
+        re = new RegExp @payload.body.term, "ig"
         results = results.map (result) =>
-          result.highlight = result.fullPath.replace re, "<em>#{@payload.data.term}</em>"
+          result.highlight = result.fullPath.replace re, "<em>#{@payload.body.term}</em>"
           return result
 
         @items = results
@@ -34,7 +34,7 @@
 
       sendQuery: (e) ->
         delete @termMatched
-        @payload.data.term = e.detail.value
+        @payload.body.term = e.detail.value
         @$.websocket.send @payload
 
       queryResult: (e) ->
@@ -56,16 +56,20 @@
       attached: ->
 
         typeMap = 
-          'sector': "Sector"
-          'job-function': "JobFunction"
-          'region': "Region"
+          'sector': "sector"
+          'job-function': "job_function"
+          'region': "region"
 
         @limit = 8
 
         @payload = 
-          verb: "POST"
-          url: "https://query.glgroup.com/taxonomy/searchTaxonomyType.mustache?type=#{typeMap[@type]}"
-          data:
+          verb: "post"
+          url: @endpoint
+          headers:
+            authorization: "Basic c3ZjU3RhcnBobGVldExEQVA6NHJhdFVSYXM="
+          json: true
+          body:
+            type: typeMap[@type]
             limit: @limit
             term: null
 
