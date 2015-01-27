@@ -55,16 +55,19 @@
 
       attached: ->
 
-        urlMap = 
+        typeMap = 
           'sector': "Sector"
           'job-function': "JobFunction"
           'region': "Region"
 
+        @limit = 8
+
         @payload = 
           verb: "POST"
-          url: "https://query.glgroup.com/taxonomy/search#{urlMap[@type]}.mustache"
+          url: "https://query.glgroup.com/taxonomy/searchTaxonomyType.mustache?type=#{typeMap[@type]}"
           data:
-            limit: 12
+            limit: @limit
+            term: null
 
         @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
