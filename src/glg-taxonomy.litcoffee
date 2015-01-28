@@ -32,15 +32,65 @@
 
 ##Event Handlers
 
+      nop: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+        return false      
+
+      filter: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+        
+        model =  src.templateInstance.model
+
+        @selectedItems = @selectedItems.slice 0, model.b
+        selectedItem = model.branches[model.b][src.selectedIndex]
+        @selectedItems.push selectedItem
+
+        @selectedPath = @selectedItems.map (item) -> item.nodeName
+        
+        @payload.body.id = selectedItem.id
+        @payload.body.browse = true
+        @$.websocket.send @payload
+
+        return false      
+
+      browse: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+
+        @showBrowse = true
+        item = src.templateInstance.model.item
+        @selectedPath = item.fullPath.split(' > ')
+        
+        @payload.body.id = item.id
+        @payload.body.browse = true
+        @$.websocket.send @payload
+
+        return false
+
       sendQuery: (e) ->
         delete @termMatched
+        @showBrowse = false
         @payload.body.term = e.detail.value
+        @payload.body.browse = false
         @$.websocket.send @payload
 
       queryResult: (e) ->
         results = e.detail.text || []
-        @termMatched = results.length > 0
-        @results = results
+        if @payload.body.browse
+          @selectedItems = []
+          @branches = results.reduce (acc, item) => 
+            index = @selectedPath.indexOf item.nodeName
+            @selectedItems.push item if index > -1
+            acc[item.depth] ||= [{id:-1,nodeName:""}]
+            acc[item.depth].push(item)
+            acc
+          ,[]
+
+        else
+          @termMatched = results.length > 0
+          @results = results
         
 
 ##Polymer Lifecycle
@@ -72,6 +122,7 @@
             type: typeMap[@type]
             limit: @limit
             term: null
+            parts: []
 
         @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)

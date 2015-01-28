@@ -11,7 +11,7 @@
       <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}" debounce="{{debounce}}">
         <content select="icon"></content>
         <template value="{{value}}">
-          <value>
+          <value on-click="{{browse}}">
             <ui-tooltip label="{{item.fullPath}}">
               <ui-pill>{{item.nodeName}}</ui-pill>
             </ui-tooltip>
@@ -24,8 +24,21 @@
           </ui-typeahead-item>
         </template>
 
+        <template if="{{showBrowse}}">
+          <ui-typeahead-item label>
+            <template repeat="{{ branch, b in branches}}">
+              <select on-click="{{nop}}" on-change="{{filter}}">
+                <template repeat="{{ option in branch}}">
+                  <option selected?="{{selectedItems[b].id == option.id}}" value="{{option.id}}">{{option.nodeName}}</option>
+                </template>
+              </select>
+            </template>
+          </ui-typeahead-item>
+        </template>        
+
         <template id="typeahead-template" repeat="{{item, i in items}}">
           <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}">
+            <span>add</span>&middot;<span on-click="{{browse}}">browse</span>
             <safe-html html="{{ item.highlight }}"></safe-html>
           </ui-typeahead-item>
         </template>
