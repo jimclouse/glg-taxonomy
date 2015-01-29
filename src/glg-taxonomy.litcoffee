@@ -24,13 +24,17 @@
         # highlighting
         re = new RegExp @payload.body.term, "ig"
         results = results.map (result) =>
+          result.closed = true
           result.highlight = result.fullPath.replace re, "<em>#{@payload.body.term}</em>"
-          return result
+          result
 
         @items = results
             
 
 ##Event Handlers
+
+      focus: () ->
+        @sticky = true
 
       nop: (e, _, src) ->
         e.preventDefault()
@@ -55,12 +59,32 @@
 
         return false      
 
+      select: (e, _, src) ->
+        e.preventDefault()
+        e.stopPropagation()
+
+        model = src.templateInstance.model
+        parent = src.parentElement.querySelector("select")
+        selectedItem = model.branches[model.b][parent.selectedIndex]
+        console.log selectedItem
+        return false if selectedItem.id == -1
+
+        @value.push selectedItem
+        @$.typeahead.value = @value.map (v) -> {item:v}
+        return false
+
+
       browse: (e, _, src) ->
         e.preventDefault()
         e.stopPropagation()
 
         @showBrowse = true
         item = src.templateInstance.model.item
+        
+        @opened?.closed = true
+        @opened = item
+        @opened.closed = false
+        
         @selectedPath = item.fullPath.split(' > ')
         
         @payload.body.id = item.id
@@ -111,6 +135,7 @@
           'region': "region"
 
         @limit = 8
+        @sticky = true
 
         @payload = 
           verb: "post"
@@ -127,8 +152,10 @@
         @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         
-        document.addEventListener 'click', () =>
-          @$.typeahead.$.results.classList.remove 'open'
+        document.addEventListener 'click', (e) =>
+          console.log e.target is @, "asd"
+          return if e.target is @
+          @sticky = false
 
         @addEventListener 'itemremoved', (e) ->
           index = @value.indexOf e.detail.item

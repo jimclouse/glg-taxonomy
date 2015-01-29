@@ -4,11 +4,14 @@
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 <link rel="import" href="safe-html.html" />
 
-<polymer-element name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce">
+<polymer-element on-focus="{{focus}}" name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
-      <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}" debounce="{{debounce}}">
+    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/font-awesome.less">
+    <link rel="stylesheet" href="../node_modules/ui-fonts/node_modules/ui-font-awesome/icons.less">
+
+      <ui-typeahead id="typeahead" multiselect placeholder="{{placeholder}}" sticky?="{{sticky}}">
         <content select="icon"></content>
         <template value="{{value}}">
           <value on-click="{{browse}}">
@@ -19,26 +22,33 @@
         </template>
 
         <template if="{{termMatched === false}}">
-          <ui-typeahead-item label>
+          <ui-typeahead-section>
             Nothing matched
-          </ui-typeahead-item>
+          </ui-typeahead-section>
         </template>
 
         <template if="{{showBrowse}}">
-          <ui-typeahead-item label>
+          <ui-typeahead-section>
             <template repeat="{{ branch, b in branches}}">
-              <select on-click="{{nop}}" on-change="{{filter}}">
-                <template repeat="{{ option in branch}}">
-                  <option selected?="{{selectedItems[b].id == option.id}}" value="{{option.id}}">{{option.nodeName}}</option>
-                </template>
-              </select>
+              <span on-click="{{nop}}" class="tree-branch">
+                <icon angle-down></icon>
+                <select on-change="{{filter}}">
+                  <template repeat="{{ option in branch}}">
+                    <option selected?="{{selectedItems[b].id == option.id}}" value="{{option.id}}">{{option.nodeName}}</option>
+                  </template>
+                </select>
+                <icon on-click="{{select}}" plus></icon>
+              </span>
             </template>
-          </ui-typeahead-item>
+          </ui-typeahead-section>
         </template>        
 
         <template id="typeahead-template" repeat="{{item, i in items}}">
           <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}">
-            <span>add</span>&middot;<span on-click="{{browse}}">browse</span>
+            <span on-click="{{browse}}">
+              <icon folder-open-o hidden?="{{item.closed}}"></icon>
+              <icon folder-o hidden?="{{!item.closed}}"></icon>
+            </span>
             <safe-html html="{{ item.highlight }}"></safe-html>
           </ui-typeahead-item>
         </template>
