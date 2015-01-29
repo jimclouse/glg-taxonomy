@@ -65,14 +65,13 @@
 
         model = src.templateInstance.model
         parent = src.parentElement.querySelector("select")
+
         selectedItem = model.branches[model.b][parent.selectedIndex]
-        console.log selectedItem
         return false if selectedItem.id == -1
 
         @value.push selectedItem
         @$.typeahead.value = @value.map (v) -> {item:v}
         return false
-
 
       browse: (e, _, src) ->
         e.preventDefault()
@@ -80,12 +79,13 @@
 
         @showBrowse = true
         item = src.templateInstance.model.item
+
+        @selectedPath = item.fullPath.split(' > ')
+        @selectedItems = []
         
         @opened?.closed = true
         @opened = item
         @opened.closed = false
-        
-        @selectedPath = item.fullPath.split(' > ')
         
         @payload.body.id = item.id
         @payload.body.browse = true
@@ -103,7 +103,6 @@
       queryResult: (e) ->
         results = e.detail.text || []
         if @payload.body.browse
-          @selectedItems = []
           @branches = results.reduce (acc, item) => 
             index = @selectedPath.indexOf item.nodeName
             @selectedItems.push item if index > -1
@@ -118,8 +117,6 @@
         
 
 ##Polymer Lifecycle
-
-      created: ->
 
       ready: () ->
           @items ||= []
@@ -136,12 +133,12 @@
 
         @limit = 8
         @sticky = true
+        @branches = []
+        @value ||= []
 
         @payload = 
           verb: "post"
           url: @endpoint
-          headers:
-            authorization: "Basic c3ZjU3RhcnBobGVldExEQVA6NHJhdFVSYXM="
           json: true
           body:
             type: typeMap[@type]
@@ -153,7 +150,6 @@
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         
         document.addEventListener 'click', (e) =>
-          console.log e.target is @, "asd"
           return if e.target is @
           @sticky = false
 
@@ -165,13 +161,7 @@
           @results = []
           @value.push e.detail.item
 
-
-      domReady: ->
-
-      detached: ->
-
       publish:
         value:
-          value: []
           reflect: true
 
