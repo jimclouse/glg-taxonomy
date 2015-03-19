@@ -6,7 +6,7 @@
     "polymer-serve": "git://github.com/custom-elements/polymer-serve",
     "ui-styles": "git://github.com/custom-elements/ui-styles#master",
     "ui-fonts": "git://github.com/custom-elements/ui-fonts.git",
-    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#master",
+    "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#glg-taxonomy",
     "ui-pill": "git://github.com/custom-elements/ui-pill.git",
     "ui-tooltip": "git://github.com/custom-elements/ui-tooltip.git",
     "core-websocket": "git://github.com/custom-elements/core-websocket.git"

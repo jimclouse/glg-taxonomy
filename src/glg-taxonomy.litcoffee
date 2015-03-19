@@ -33,9 +33,6 @@
 
 ##Event Handlers
 
-      focus: () ->
-        @sticky = true
-
       nop: (e, _, src) ->
         e.preventDefault()
         e.stopPropagation()
@@ -89,6 +86,8 @@
         
         @payload.body.id = item.id
         @payload.body.browse = true
+
+        @$.typeahead.open()
         @$.websocket.send @payload
 
         return false
@@ -115,6 +114,12 @@
           @termMatched = results.length > 0
           @results = results
         
+      close: ->
+        @$.typeahead.close()
+        @results = []
+        @branches = []
+        @payload.body.term = null
+        @showBrowse = false
 
 ##Polymer Lifecycle
 
@@ -132,7 +137,6 @@
           'region': "region"
 
         @limit = 8
-        @sticky = true
         @branches = []
         @value ||= []
 
@@ -151,11 +155,11 @@
         
         document.addEventListener 'click', (e) =>
           return if e.target is @
-          @sticky = false
 
         @addEventListener 'itemremoved', (e) ->
           index = @value.indexOf e.detail.item
           @value.splice index, 1
+          @close() if @value.length == 0 && !@payload.body.term
 
         @addEventListener 'itemadded', (e) ->
           @results = []
