@@ -29,7 +29,9 @@
           result
 
         @items = results
-            
+
+      itemsChanged: (oldItems, newItems) ->
+        newItems[0].focused = true if newItems?.length > 0
 
 ##Event Handlers
 
@@ -52,7 +54,7 @@
         
         @payload.body.id = selectedItem.id
         @payload.body.browse = true
-        @$.websocket.send @payload
+        @send @payload
 
         return false      
 
@@ -86,22 +88,26 @@
         
         @payload.body.id = item.id
         @payload.body.browse = true
+        @payload.body.term = @$.typeahead.$.input.value
 
-        @$.typeahead.open()
-        @$.websocket.send @payload
-
+        @send @payload
         return false
 
-      sendQuery: (e) ->
+      send: (payload) ->
+        @loading = true
+        @$.websocket.send payload
+
+      sendTermQuery: (e) ->
         delete @termMatched
         @showBrowse = false
         @payload.body.term = e.detail.value
         @payload.body.browse = false
-        @$.websocket.send @payload
+        @send @payload
 
       queryResult: (e) ->
         results = e.detail.text || []
         if @payload.body.browse
+
           @branches = results.reduce (acc, item) => 
             index = @selectedPath.indexOf item.nodeName
             @selectedItems.push item if index > -1
@@ -109,10 +115,13 @@
             acc[item.depth].push(item)
             acc
           ,[]
-
         else
           @termMatched = results.length > 0
           @results = results
+          
+        @loading = false
+        @$.typeahead.open()
+
         
       close: ->
         @$.typeahead.close()
@@ -139,6 +148,7 @@
         @limit = 8
         @branches = []
         @value ||= []
+        @loading = false
 
         @payload = 
           verb: "post"
@@ -150,7 +160,7 @@
             term: null
             parts: []
 
-        @$.typeahead.addEventListener 'inputchange', @sendQuery.bind(@)
+        @$.typeahead.addEventListener 'inputchange', @sendTermQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
         
         document.addEventListener 'click', (e) =>
