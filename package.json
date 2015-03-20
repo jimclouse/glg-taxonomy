@@ -1,6 +1,6 @@
 {
   "name": "glg-taxonomy",
-  "version": "0.0.0",
+  "version": "0.2.0",
   "dependencies": {
     "polymer": "git://github.com/custom-elements/polymer",
     "polymer-serve": "git://github.com/custom-elements/polymer-serve",
