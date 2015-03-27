@@ -3,9 +3,9 @@
   "version": "0.0.0",
   "dependencies": {
     "polymer": "git://github.com/custom-elements/polymer",
-    "polymer-serve": "git://github.com/custom-elements/polymer-serve",
+    "polymer-serve": "^0.0.30",
     "ui-styles": "git://github.com/custom-elements/ui-styles#master",
-    "ui-fonts": "git://github.com/custom-elements/ui-fonts.git",
+    "ui-fonts": "^0.0.1",
     "ui-typeahead": "git://github.com/custom-elements/ui-typeahead.git#master",
     "ui-pill": "git://github.com/custom-elements/ui-pill.git",
     "ui-tooltip": "git://github.com/custom-elements/ui-tooltip.git",
