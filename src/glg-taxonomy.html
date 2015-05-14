@@ -11,7 +11,7 @@
         <ui-typeahead id="typeahead" multiselect sticky placeholder="{{placeholder}}">
 
           <template if="{{showFilter}}">
-            <ui-typeahead-header>
+            <ui-typeahead-section>
               <div class="selected-facets">
                 Searching in
                 &nbsp;&middot;&nbsp;<span on-click="{{clearFacets}}">All {{pluralMap[type]}}</span>
@@ -26,12 +26,12 @@
                   
                 </template>
                 <template repeat="{{facet in availableFacets}}">
-                  &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}} ({{facet.count}})</span>
+                  &nbsp;&middot;&nbsp;<span on-click="{{addFacet}}">{{facet.term}}</span>
                 </template>
               </div>
               
 
-            </ui-typeahead-header>
+            </ui-typeahead-section>
           </template>
 
           <template value="{{value}}">
@@ -43,18 +43,19 @@
           </template>
 
           <template if="{{termMatched === false}}">
-            <ui-typeahead-header>
+            <ui-typeahead-section>
               Nothing matched
-            </ui-typeahead-header>
+            </ui-typeahead-section>
           </template>
 
           <template id="typeahead-template" repeat="{{item, i in items}}">        
             <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}">
               <template repeat="{{part in item.parts}}">
                 <span hidden?="{{part.depth < activeFacets.length}}">
-                  <i hidden?="{{part.depth == activeFacets.length}}">&nbsp;&gt;&nbsp;</i> <safe-html html="{{ part.highlight }}"></safe-html> <span on-click="{{browseToPart}}">&#8635;</span>
+                  <i hidden?="{{part.depth == activeFacets.length}}" on-click="{{browseToPart}}">&nbsp;&gt;&nbsp;</i> <safe-html html="{{ part.highlight }}"></safe-html>
                 </span>
               </template>
+               {{item._score}}
             </ui-typeahead-item>
           </template>
   

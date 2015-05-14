@@ -6,20 +6,71 @@
 
 
 ##Attributes and Change Handlers
-      
-      elasticParams:
 
+      elasticParams:
         query:
-          constant_score:
+          filtered:
             query:
-              match:
-                nodeName_simple:
-                  query:
-                    type: "phrase_prefix"
-        
-        sort: [
-            {depth: { order: "asc"}},
-            {id: { order: "asc"}}
+              bool:
+                must: [
+                  
+                  {
+                    prefix:
+                      nodeName_simple:
+                        value: null
+                        boost: 4
+                  }
+                  {
+                    match:
+                      nodeName_stemmed:
+                        query: null
+                        type: "phrase_prefix"
+                        boost: 2
+                  }
+                  {
+                    constant_score:
+                      query:
+                        match:
+                          nodeName_stemmed:
+                            query: null
+                            operator: "and"
+                            boost: 3
+                  }     
+                  {
+                    match:
+                      nodeName_stemmed:
+                        query: null
+                        operator: "or"
+                        boost: 2
+                  }
+                  # {
+                  #   match:
+                  #     fullPath:
+                  #       query: null
+                  #       operator: "and"
+                  #       boost: 1.5
+                  # }
+                  # {
+                  #   match:
+                  #     fullPath:
+                  #       query: null
+                  #       operator: "or"
+                  # }
+                ]
+            filter:
+              bool:
+                must: []
+
+        sort:
+          [
+            # depth:
+            #   order: "asc"
+            
+            _score:
+             order: "desc"
+            
+            id:
+              order: "asc"
           ]
 
         facets:
@@ -30,7 +81,9 @@
         highlight:
           order: "score"
           fields:
-            nodeName_simple:
+            nodeName:
+              number_of_fragments: 0
+            fullPath:
               number_of_fragments: 0
 
       resultsChanged: (oldResults, newResults) ->
@@ -48,15 +101,17 @@
       formatResults: (results) ->
         @items = results.map (item) ->
           parts = item.fullPath.split(' > ')
-          highlights = item.highlight.fullPath.split(' > ')
+          #highlights = item.highlight.fullPath.split(' > ') || []
           item.parts = parts.map (part, i) ->
-            {nodeName:part, highlight: highlights[i], depth:i, parts: parts.slice 0, i + 1}
+            {nodeName:part, highlight: part, depth:i, parts: parts.slice 0, i + 1}
           item
 
       browseToPart: (e, _, src) ->
+
         e.preventDefault()
         e.stopPropagation()
         part = src.templateInstance.model.part
+        console.log src.templateInstance.model
         
         @activeFacets = part.parts.map (term) -> {term}
         @availableFacets = []
@@ -75,9 +130,7 @@
           terms:
             field: "level_#{@facetDepth}"
 
-        console.log @elasticParams.facets
         @$.websocket.send @payload
-        console.log part
         return false
 
 ##Event Handlers
@@ -142,13 +195,13 @@
         @availableFacets = []
         return unless e.detail.text
         response = e.detail.text
-        console.log response
         @availableFacets = response.facets["level_#{@facetDepth}"].terms
         
         results = response.hits.hits.map (h) -> 
           h._source.highlight = {}
           Object.keys(h.highlight).forEach (k) -> 
             h._source.highlight[k] = h.highlight[k][0]
+          h._source["_score"]  = h._score
           h._source
 
         @termMatched = results.length > 0
@@ -190,10 +243,16 @@
         @queryTerm = ""
 
         @elasticParams.from = 0
-        @elasticParams.size = 12
+        @elasticParams.size = 8
         
         @$.typeahead.addEventListener 'inputchange', (e) =>
-          @elasticParams.query.filtered.query.constant_score.query.function_score.query.multi_match.query = e.detail.value
+          value = (e.detail.value || "").trim()
+          @elasticParams.query.filtered.query.bool.should[0].prefix.nodeName_simple.value = value
+          @elasticParams.query.filtered.query.bool.should[1].match.nodeName_stemmed.query = value
+          @elasticParams.query.filtered.query.bool.should[2].constant_score.query.match.nodeName_stemmed.query = value
+          @elasticParams.query.filtered.query.bool.should[3].match.nodeName_stemmed.query = value
+          # @elasticParams.query.filtered.query.bool.should[4].match.fullPath.query = value
+          # @elasticParams.query.filtered.query.bool.should[5].match.fullPath.query = value
           @$.websocket.send @payload
 
         @$.websocket.addEventListener 'data', @queryResult.bind(@)

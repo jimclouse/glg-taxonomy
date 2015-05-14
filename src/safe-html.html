@@ -1,0 +1,11 @@
+<!-- http://jsbin.com/durajiwo/1/edit?html,output -->
+<polymer-element name="safe-html" attributes="html">
+  <script>
+    Polymer('safe-html', {
+      htmlChanged: function() {
+        // WARNING: potential XSS vulnerability if `html` comes from an untrusted source
+        this.innerHTML = this.html;
+      }
+    });
+  </script>
+</polymer-element>
