@@ -20,7 +20,7 @@
 
 ##Methods
 
-      formatResults: (results) ->        
+      formatResults: (results) ->
         # highlighting
         re = new RegExp @payload.body.term, "ig"
         results = results.map (result) =>
@@ -38,12 +38,12 @@
       nop: (e, _, src) ->
         e.preventDefault()
         e.stopPropagation()
-        return false      
+        return false
 
       filter: (e, _, src) ->
         e.preventDefault()
         e.stopPropagation()
-        
+
         model =  src.templateInstance.model
 
         @selectedItems = @selectedItems.slice 0, model.b
@@ -51,12 +51,12 @@
         @selectedItems.push selectedItem
 
         @selectedPath = @selectedItems.map (item) -> item.nodeName
-        
+
         @payload.body.id = selectedItem.id
         @payload.body.browse = true
         @send @payload
 
-        return false      
+        return false
 
       select: (e, _, src) ->
         e.preventDefault()
@@ -68,7 +68,7 @@
         selectedItem = model.branches[model.b][parent.selectedIndex]
         return false if selectedItem.id == -1
 
-        @value.push selectedItem
+        @value = @value.concat selectedItem
         @$.typeahead.value = @value.map (v) -> {item:v}
         return false
 
@@ -81,11 +81,11 @@
 
         @selectedPath = item.fullPath.split(' > ')
         @selectedItems = []
-        
+
         @opened?.closed = true
         @opened = item
         @opened.closed = false
-        
+
         @payload.body.id = item.id
         @payload.body.browse = true
         @payload.body.term = @$.typeahead.$.input.value
@@ -108,7 +108,7 @@
         results = e.detail.text || []
         if @payload.body.browse
 
-          @branches = results.reduce (acc, item) => 
+          @branches = results.reduce (acc, item) =>
             index = @selectedPath.indexOf item.nodeName
             @selectedItems.push item if index > -1
             acc[item.depth] ||= [{id:-1,nodeName:""}]
@@ -118,11 +118,11 @@
         else
           @termMatched = results.length > 0
           @results = results
-          
+
         @loading = false
         @$.typeahead.open()
 
-        
+
       close: ->
         @$.typeahead.close()
         @results = []
@@ -140,7 +140,7 @@
 
       attached: ->
 
-        typeMap = 
+        typeMap =
           'sector': "sector"
           'job-function': "job_function"
           'region': "region"
@@ -150,7 +150,7 @@
         @value ||= []
         @loading = false
 
-        @payload = 
+        @payload =
           verb: "post"
           url: @endpoint
           json: true
@@ -162,18 +162,19 @@
 
         @$.typeahead.addEventListener 'inputchange', @sendTermQuery.bind(@)
         @$.websocket.addEventListener 'data', @queryResult.bind(@)
-        
+
         document.addEventListener 'click', (e) =>
           return if e.target is @
 
         @addEventListener 'itemremoved', (e) ->
-          index = @value.indexOf e.detail.item
-          @value.splice index, 1
+          @value = @value.filter (v)->
+            v.id != e.detail.item.id
+          @value = @value
           @close() if @value.length == 0 && !@payload.body.term
 
         @addEventListener 'itemadded', (e) ->
           @results = []
-          @value.push e.detail.item
+          @value = @value.concat e.detail.item
 
       publish:
         value:
