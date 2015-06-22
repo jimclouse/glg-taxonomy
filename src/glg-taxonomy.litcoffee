@@ -145,7 +145,7 @@
           'job-function': "job_function"
           'region': "region"
 
-        @limit = 8
+        @limit ||= 8
         @branches = []
         @value ||= []
         @loading = false

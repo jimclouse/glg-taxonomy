@@ -4,7 +4,7 @@
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 <link rel="import" href="safe-html.html" />
 
-<polymer-element on-focus="{{focus}}" name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce">
+<polymer-element on-focus="{{focus}}" name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce limit">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
@@ -42,7 +42,7 @@
               </span>
             </template>
           </ui-typeahead-section>
-        </template>        
+        </template>
 
         <template id="typeahead-template" repeat="{{item, i in items}}">
           <ui-typeahead-item class="{{ {'odd': i % 2 == 0 } | tokenList }}" focused?="{{item.focused}}">
