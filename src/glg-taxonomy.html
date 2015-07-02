@@ -1,10 +1,10 @@
 <link rel="import" href="../node_modules/ui-typeahead/src/ui-typeahead.html" />
 <link rel="import" href="../node_modules/ui-tooltip/src/ui-tooltip.html" />
-<link rel="import" href="../node_modules/core-websocket/src/core-websocket.html" />
+<link rel="import" href="../node_modules/core-ajax-npm/core-ajax.html">
 <link rel="import" href="../node_modules/ui-pill/src/ui-pill.html" />
 <link rel="import" href="safe-html.html" />
 
-<polymer-element on-focus="{{focus}}" name="glg-taxonomy" attributes="type imposter endpoint value placeholder debounce limit">
+<polymer-element on-focus="{{focus}}" name="glg-taxonomy" attributes="type queryurl searchurl value minscore placeholder debounce limit">
   <template>
     <link rel="stylesheet" type="text/css" href="./glg-taxonomy.less">
 
@@ -56,7 +56,10 @@
 
       </ui-typeahead>
 
-      <core-websocket id="websocket" urls="{{imposter}}"></core-websocket>
+      <core-ajax id="queryXhr" method="post" url="{{queryurl}}" contentType="application/json" handleAs="json" on-core-response="{{handleQueryResponse}}">
+      </core-ajax>
+      <core-ajax id="searchXhr" method="post" url="{{searchurl}}" contentType="application/json" handleAs="json" on-core-response="{{handleSearchResponse}}">
+      </core-ajax>
 
   </template>
   <script src="./glg-taxonomy.litcoffee"></script>

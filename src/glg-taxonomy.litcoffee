@@ -20,13 +20,60 @@
 
 ##Methods
 
+      getSearchBody: (term) ->
+        body =
+          min_score: +@minscore
+          query:
+            function_score:
+              filter:
+                query:
+                  match:
+                    "fullPath.trigram": term
+              functions: [
+                {
+                  script_score:
+                    script: 'tf_script_score'
+                    params:
+                      field: "fullPath.trigram"
+                      querystring: term
+                      lowercase: true
+                      foldascii: true
+                    lang: 'native'
+                },{
+                  filter:
+                    query:
+                      match:
+                        "fullPath.edgetrigram": term
+                  boost_factor: 0.001
+                },{
+                  filter:
+                    query:
+                      match:
+                        "fullPath.sort": term
+                  boost_factor: 0.001
+                }
+              ]
+              score_mode: 'sum',
+              boost_mode: 'replace'
+          highlight:
+            fields:
+              fullPath:
+                number_of_fragments: 0
+                highlight_query:
+                  match:
+                    "fullPath.trigram": term
+
+
+          size: @limit
+
+        body
+
       formatResults: (results) ->
-        # highlighting
-        re = new RegExp @payload.body.term, "ig"
-        results = results.map (result) =>
-          result.closed = true
-          result.highlight = result.fullPath.replace re, "<em>#{@payload.body.term}</em>"
-          result
+        results = results.map (h) ->
+          h._source.highlight = h.highlight?.fullPath[0] || h._source.fullPath
+          h._source._score  = h._score
+          h._source.closed = true
+          h._source
 
         @items = results
 
@@ -52,9 +99,7 @@
 
         @selectedPath = @selectedItems.map (item) -> item.nodeName
 
-        @payload.body.id = selectedItem.id
-        @payload.body.browse = true
-        @send @payload
+        @sendBrowseQuery selectedItem
 
         return false
 
@@ -86,61 +131,62 @@
         @opened = item
         @opened.closed = false
 
-        @payload.body.id = item.id
-        @payload.body.browse = true
-        @payload.body.term = @$.typeahead.$.input.value
+        @sendBrowseQuery item
 
-        @send @payload
         return false
 
-      send: (payload) ->
-        @loading = true
-        @$.websocket.send payload
+      sendBrowseQuery: (item) ->
+        body =
+          id: item.id
+          type: @typeMap[@type]
+          browse: true
+
+        @$.queryXhr.body = JSON.stringify body
+        @$.queryXhr.go()
 
       sendTermQuery: (e) ->
         delete @termMatched
+        @term = e.detail.value
         @showBrowse = false
-        @payload.body.term = e.detail.value
-        @payload.body.browse = false
-        @send @payload
+        @$.searchXhr.body = JSON.stringify @getSearchBody(e.detail.value)
+        @$.searchXhr.go()
 
-      queryResult: (e) ->
-        results = e.detail.text || []
-        if @payload.body.browse
-
-          @branches = results.reduce (acc, item) =>
-            index = @selectedPath.indexOf item.nodeName
-            @selectedItems.push item if index > -1
-            acc[item.depth] ||= [{id:-1,nodeName:""}]
-            acc[item.depth].push(item)
-            acc
-          ,[]
-        else
-          @termMatched = results.length > 0
-          @results = results
+      handleQueryResponse: (e) ->
+        results = e.detail.response || []
+        @branches = results.reduce (acc, item) =>
+          index = @selectedPath.indexOf item.nodeName
+          @selectedItems.push item if index > -1
+          acc[item.depth] ||= [{id:-1,nodeName:""}]
+          acc[item.depth].push(item)
+          acc
+        ,[]
 
         @loading = false
         @$.typeahead.open()
 
+      handleSearchResponse: (e) ->
+        results = e.detail.response.hits?.hits || []
+        @termMatched = results.length > 0
+        @results = results
+        @loading = false
+        @$.typeahead.open()
 
       close: ->
         @$.typeahead.close()
         @results = []
         @branches = []
-        @payload.body.term = null
+        @term = null
         @showBrowse = false
 
 ##Polymer Lifecycle
 
       ready: () ->
-          @items ||= []
-          # hack for now because an empty placeholder has a different height than the input
-          # play with styles later
-          @placeholder ||= " "
+        @items ||= []
+        @placeholder ||= " "
 
       attached: ->
 
-        typeMap =
+        @typeMap =
           'sector': "sector"
           'job-function': "job_function"
           'region': "region"
@@ -150,27 +196,15 @@
         @value ||= []
         @loading = false
 
-        @payload =
-          verb: "post"
-          url: @endpoint
-          json: true
-          body:
-            type: typeMap[@type]
-            limit: @limit
-            term: null
-            parts: []
-
         @$.typeahead.addEventListener 'inputchange', @sendTermQuery.bind(@)
-        @$.websocket.addEventListener 'data', @queryResult.bind(@)
 
         document.addEventListener 'click', (e) =>
           return if e.target is @
 
         @addEventListener 'itemremoved', (e) ->
-          @value = @value.filter (v)->
-            v.id != e.detail.item.id
+          @value = @value.filter (v) -> v.id != e.detail.item.id
           @value = @value
-          @close() if @value.length == 0 && !@payload.body.term
+          @close() if @value.length == 0 && !@term
 
         @addEventListener 'itemadded', (e) ->
           @results = []
@@ -179,4 +213,12 @@
       publish:
         value:
           reflect: true
+        searchurl:
+          reflect: true
+        queryurl:
+          reflect: true
+        minscore:
+          value: 0.67
+          reflect: true
+
 
