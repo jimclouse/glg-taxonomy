@@ -196,6 +196,7 @@
         @value ||= []
         @loading = false
 
+        @$.queryXhr.withCredentials = !@queryurl.match /localhost/
         @$.typeahead.addEventListener 'inputchange', @sendTermQuery.bind(@)
 
         document.addEventListener 'click', (e) =>
