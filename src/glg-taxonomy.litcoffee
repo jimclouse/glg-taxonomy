@@ -28,13 +28,13 @@
               filter:
                 query:
                   match:
-                    "fullPath.trigram": term
+                    "nodeName.trigram": term
               functions: [
                 {
                   script_score:
                     script: 'tf_script_score'
                     params:
-                      field: "fullPath.trigram"
+                      field: "nodeName.trigram"
                       querystring: term
                       lowercase: true
                       foldascii: true
@@ -43,26 +43,25 @@
                   filter:
                     query:
                       match:
-                        "fullPath.edgetrigram": term
+                        "nodeName.edgetrigram": term
                   boost_factor: 0.001
                 },{
                   filter:
                     query:
                       match:
-                        "fullPath.sort": term
+                        "nodeName.sort": term
                   boost_factor: 0.001
                 }
               ]
               score_mode: 'sum',
               boost_mode: 'replace'
-          highlight:
-            fields:
-              fullPath:
-                number_of_fragments: 0
-                highlight_query:
-                  match:
-                    "fullPath.trigram": term
-
+          # highlight:
+          #   fields:
+          #     fullPath:
+          #       number_of_fragments: 0
+          #       highlight_query:
+          #         match:
+          #           "fullPath.trigram": term
 
           size: @limit
 
@@ -70,7 +69,8 @@
 
       formatResults: (results) ->
         results = results.map (h) ->
-          h._source.highlight = h.highlight?.fullPath[0] || h._source.fullPath
+          #h._source.highlight = h.highlight?.fullPath[0] || h._source.fullPath
+          h._source.highlight = h._source.fullPath
           h._source._score  = h._score
           h._source.closed = true
           h._source
