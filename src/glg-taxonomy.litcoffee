@@ -22,7 +22,6 @@
 
       getSearchBody: (term) ->
         body =
-          min_score: +@minscore
           query:
             function_score:
               filter:
@@ -196,7 +195,7 @@
         @value ||= []
         @loading = false
 
-        @$.queryXhr.withCredentials = !@queryurl.match /localhost/
+        @$.queryXhr.withCredentials = true
         @$.typeahead.addEventListener 'inputchange', @sendTermQuery.bind(@)
 
         document.addEventListener 'click', (e) =>
@@ -218,8 +217,3 @@
           reflect: true
         queryurl:
           reflect: true
-        minscore:
-          value: 0.67
-          reflect: true
-
-
