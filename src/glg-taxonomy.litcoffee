@@ -112,8 +112,8 @@
         selectedItem = model.branches[model.b][parent.selectedIndex]
         return false if selectedItem.id == -1
 
-        @value = @value.concat selectedItem
-        @$.typeahead.value = @value.map (v) -> {item:v}
+        #@value = @value.concat selectedItem
+        @$.typeahead.value = {item: selectedItem} # @value.map (v) -> {item:v}
         return false
 
       browse: (e, _, src) ->
@@ -192,7 +192,7 @@
 
         @limit ||= 8
         @branches = []
-        @value ||= []
+        @value ||= ""
         @loading = false
 
         @$.queryXhr.withCredentials = true
@@ -202,13 +202,12 @@
           return if e.target is @
 
         @addEventListener 'itemremoved', (e) ->
-          @value = @value.filter (v) -> v.id != e.detail.item.id
-          @value = @value
-          @close() if @value.length == 0 && !@term
+          @value = null
+          @close()
 
         @addEventListener 'itemadded', (e) ->
           @results = []
-          @value = @value.concat e.detail.item
+          @value = e.detail.item
 
       publish:
         value:
