@@ -208,7 +208,12 @@
 
         @addEventListener 'itemadded', (e) ->
           @results = []
-          @value = @value.concat e.detail.item
+          @value = @value.concat [e.detail.item]
+
+        @addEventListener 'itemselected', (e) ->
+          $results = []
+          console.log e
+          @value = [e.detail.item]
 
       publish:
         value:
